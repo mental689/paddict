@@ -25,6 +25,11 @@ Given two authors (u,v), for each paper they collaborated (names are in the auth
 When the __network score__ is one, you can interpret that one of the author is in the largest connected component of the collaboration graph.
 A visualization of the collaboration graph with the CVPR2019 dataset can be found in: [https://plot.ly/create/?fid=marxen68:4](https://plot.ly/create/?fid=marxen68:4).
 
+* Added tagging features: A predefined list of keyword are tokenized from titles of papers in the dataset as the initial tag set. 
+When a user input a **query tag**, it will be matched with the **supporting set** of tags in the relational database.
+The relationship between query tag and the supporting tag set is exploited to enhance the tagging process.
+These document-level labels are noisy, to be cautious!
+
 ### Acknowledgement
 
 About CVF papers, a mention from  the [source](http://openaccess.thecvf.com/CVPR2019.py):
