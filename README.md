@@ -2,6 +2,18 @@ paddict
 =====
 A simple reader app for paper addicters. Crawling and reading papers from major venues on your own server.
 
+### Features
+
+* **Statistical overview dashboard** including visualizations of authors graph (their collaborations wth interactive tools thanks to [plot.ly](https://plot.ly), word cloud of keywords extracted from paper titles, statistics of participants and papers, etc.
+
+* **Interactive reader** which utilises a PDF reader to help faster reading and summarizing paper in only once view.
+
+* **Relational database** to manage author-paper relationships and author-author relationships.
+
+### TODO
+
+* Add interactive tools to memo, take notes and manage reading process.
+
 ### Acknowledgement
 
 About CVF papers, a mention from  the [source](http://openaccess.thecvf.com/CVPR2019.py):
