@@ -92,11 +92,11 @@ class ReadingView(TemplateView):
         except:
             ctx['maxNetworkSize'] = 0.0
         tags = request.POST.getlist('taggles[]')
-        with open('{}/static/stopwords.text'.format(BASE_DIR)) as f:
+        with open('{}/static/stopwords.txt'.format(BASE_DIR)) as f:
             stopwords = [s.strip() for s in f.readlines()]
         for tag in tags:
             tagger = Tag.objects.filter(text=tag).first()
-            if tagger is None and re.sub('[^0-9a-zA-Z]+','',tag).lower()) not in stopwords:
+            if tagger is None and re.sub('[^0-9a-zA-Z]+','',tag).lower()  not in stopwords:
                 tagger = Tag(text=re.sub('[^0-9a-zA-Z]+','',tag).lower())
                 tagger.save()
             assignment = TagAssignment.objects.filter(doc=ctx['paper'],tag=tagger).first()
