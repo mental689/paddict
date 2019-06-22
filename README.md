@@ -8,3 +8,9 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 #### Reader
 
 ![Reader](./static/img/reader.png)
+
+
+#### Dashboard
+
+![Dashboard](./static/img/dashboard.png)
+
