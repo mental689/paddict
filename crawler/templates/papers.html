@@ -1,0 +1,120 @@
+{% extends 'index.html' %}
+
+{% block js %}
+<script >
+		$(document).ready(function() {
+			$('#basic-datatables').DataTable({
+			});
+
+			$('#multi-filter-select').DataTable( {
+				"pageLength": 5,
+				initComplete: function () {
+					this.api().columns().every( function () {
+						var column = this;
+						var select = $('<select class="form-control"><option value=""></option></select>')
+						.appendTo( $(column.footer()).empty() )
+						.on( 'change', function () {
+							var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+
+							column
+							.search( val ? '^'+val+'$' : '', true, false )
+							.draw();
+						} );
+
+						column.data().unique().sort().each( function ( d, j ) {
+							select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					} );
+				}
+			});
+
+			// Add Row
+			$('#add-row').DataTable({
+				"pageLength": 5,
+			});
+
+			var action = '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+			$('#addRowButton').click(function() {
+				$('#add-row').dataTable().fnAddData([
+					$("#addName").val(),
+					$("#addPosition").val(),
+					$("#addOffice").val(),
+					action
+					]);
+				$('#addRowModal').modal('hide');
+
+			});
+		});
+		function myFunction(id) {
+  			var dots = document.getElementById("dots-"+id);
+  			var moreText = document.getElementById("more-"+id);
+  			var btnText = document.getElementById("abs"+id);
+
+  			if (dots.style.display === "none") {
+   				dots.style.display = "inline";
+   	 			btnText.innerHTML = "Read abstract"; 
+    				moreText.style.display = "none";
+  			} else {
+    				dots.style.display = "none";
+    				btnText.innerHTML = "Close abstract"; 
+    				moreText.style.display = "inline";
+  			}
+		}
+	</script>
+{% endblock %}
+
+{% block content %}
+<div class="page-inner">
+	<div class="row">
+		<div class="col-md-12">
+							<div class="card">
+								<div class="card-header">
+									<h4 class="card-title">Papers</h4>
+								</div>
+								<div class="card-body">
+									<div class="table-responsive">
+										<table id="basic-datatables" class="display table table-striped table-hover" >
+											<thead>
+												<tr>
+													<th>Title</th>
+													<th>Authors</th>
+													<th>Link</th>
+												</tr>
+											</thead>
+											<tfoot>
+												<tr>
+													<th>Title</th>
+													<th>Authors</th>
+													<th>Link</th>
+												</tr>
+											</tfoot>
+											<tbody>
+												{% for paper in papers %}
+												<tr>
+													<td><h4>{{ paper.title }}</h4>
+														<span id="dots-{{paper.id}}"></span>
+														<span id="more-{{paper.id}}" class="more">
+															<p>{{ paper.abstract }}</p></span>
+														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
+													</td>
+													<td><p>{% for a in paper.authors.all %}
+														<b>{{a.name}}</b> 
+														{% endfor %}</p>
+													</td>
+													<td><a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">CVF</a></td>
+												</tr>
+												{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+
+	</div>
+</div>
+
+{% endblock %}
