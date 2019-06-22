@@ -14,6 +14,17 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 
 * Add interactive tools to memo, take notes and manage reading process.
 
+
+### Changes
+
+* Added a __network score__ to identify whether a paper is produced by the maximal connected component in the collaboration graph.
+In another word, it is calculated as the ratio between the size of the largest connected component for which one of the authors of the paper belongs to, over the size of the largest connected component in the computed collaboration graph.
+The computation of collaboration graph can be described as is: each node of the undirected graph represent one of 4,124 authors whose names presented in at least one of 1,294 papers in the sample collection.
+All weights are zeros.
+Given two authors (u,v), for each paper they collaborated (names are in the author list of the paper), the weight of the edge (u,v) is increased by one.
+When the __network score__ is one, you can interpret that one of the author is in the largest connected component of the collaboration graph.
+A visualization of the collaboration graph with the CVPR2019 dataset can be found in: [https://plot.ly/create/?fid=marxen68:4](https://plot.ly/create/?fid=marxen68:4).
+
 ### Acknowledgement
 
 About CVF papers, a mention from  the [source](http://openaccess.thecvf.com/CVPR2019.py):

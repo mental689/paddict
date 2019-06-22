@@ -1,8 +1,12 @@
 from django.shortcuts import render
+from papers.settings import BASE_DIR
 from crawler.models import *
 # Create your views here.
 from django.http import HttpResponse
 from django.views.generic import TemplateView
+import pickle
+import networkx as nx
+
 
 class IndexView(TemplateView):
     template_name = "index.html"
@@ -12,8 +16,6 @@ class IndexView(TemplateView):
         ctx['authors'] = Author.objects.all()
         ctx['papers'] = Document.objects.all()
         return self.render_to_response(ctx)
-
-
 
 
 class PaperListView(TemplateView):
@@ -36,5 +38,17 @@ class ReadingView(TemplateView):
             id = 1
         ctx = super().get_context_data(**kwargs)
         ctx['paper'] = Document.objects.filter(id=id).first()
+        # find the largest connect components in collaboration network,
+        # for which one of the authors of this paper belongs to.
+        G = pickle.load(open('{}/author_graph.pkl'.format(BASE_DIR), 'rb'))
+        components = nx.connected_component_subgraphs(G, copy=True)
+        paper_components = []
+        authors =ctx['paper'].authors.all()
+        for c in components:
+            for a in authors:
+                if a.id - 1 in c:
+                    paper_components.append(c)
+        connected_component_size = [len(list(c)) for c in paper_components]
+        ctx['maxNetworkSize'] = max(connected_component_size) / len(list(max(nx.connected_components(G))))
         return self.render_to_response(ctx)
     

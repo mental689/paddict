@@ -36,7 +36,8 @@ Reader
 									</div>
 								</div>
 				<div class="card-body">
-					<div><b>Authors: {%for a in paper.authors.all%}{{a.name}} {%endfor%}</b></div>
+					<div><p><b>Authors: {%for a in paper.authors.all%}{{a.name}} {%endfor%}</b></p></div>
+					<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
 					<div><b>Abstract:</b>{{paper.abstract}}</div>
 				</div>
 			</div>
