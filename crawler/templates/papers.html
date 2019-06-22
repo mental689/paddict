@@ -94,11 +94,11 @@
 											<tbody>
 												{% for paper in papers %}
 												<tr>
-													<td><h4>{{ paper.title }}</h4>
+													<td><h4 class="card-title">{{ paper.title }}</h4>
 														<span id="dots-{{paper.id}}"></span>
 														<span id="more-{{paper.id}}" class="more">
 															<p>{{ paper.abstract }}</p></span>
-														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
+														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 													</td>
 													<td><p>{% for a in paper.authors.all %}
 														<b>{{a.name}}</b> 

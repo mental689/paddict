@@ -6,9 +6,26 @@ Reader
 {% endblock %}
 
 {% block content %}
+<form method="POST">
+	{% csrf_token %}
+	<input type="hidden" id="id" name="id" value="{{paper.id}}">
 <div class="page-inner">
 	<div class="row">
 		<div class="col-md-4">
+			<div class="card">
+				<div class="card-header">
+						<div class="card-head-row">
+							<div class="card-title">Tags</div>
+										<div class="card-tools">
+											<input class="btn btn-info btn-border btn-round btn-sm mr-2" type="submit" value="Submit">										</div>
+						</div></div>
+				<div class="card-body">
+					<div><b>{% for ta in tags %}<a href="/crawler/tag?tag={{ta.tag.text}}">{{ta.tag.text}}</a>, {%endfor%}</b></div>
+					<div class="form-group" id="tags">
+					</div>
+				</div>
+
+			</div>
 			<div class="card">
 					<div class="card-header">
 						<div class="card-head-row">
@@ -41,6 +58,7 @@ Reader
 					<div><b>Abstract:</b>{{paper.abstract}}</div>
 				</div>
 			</div>
+			
 		</div>
 		<div class="col-md-8">
 			<div class="card">
@@ -52,11 +70,36 @@ Reader
 
 	</div>
 </div>
-
+</form>
 {% endblock %}
 
-{% block js %}	
+{% block js %}
+	<script src="{% static 'js/plugin/taggle.js/example/js/taggle.min.js' %}"></script>
 	<script type="text/javascript">
+		jQuery.curCSS = jQuery.css;
 		PDFObject.embed("/static/paper{{paper.id}}.pdf", "#example1");
+		var tagger = new Taggle('tags', {
+			tags: [],
+    			duplicateTagClass: 'bounce'
+		});
+var container = tagger.getContainer();
+var input = tagger.getInput();
+
+$(input).autocomplete({
+    source: [{% for v in vocab %}'{{v.text}}',{% endfor %}], // See jQuery UI documentaton for options
+    appendTo: container,
+    position: { at: "left bottom", of: container },
+    select: function(event, data) {
+        event.preventDefault();
+        //Add the tag if user clicks
+        if (event.which === 1) {
+            tagger.add(data.item.value);
+        }
+    }
+});
 	</script>
+{% endblock %}
+
+{% block css %}
+<!--link rel="stylesheet" href="{% static 'js/plugin/tagify/style.css' %}"-->
 {% endblock %}

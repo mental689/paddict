@@ -6,4 +6,5 @@ urlpatterns = [
     url(r'^$', views.IndexView.as_view(), name='index'),
     url(r'^papers$', views.PaperListView.as_view(), name='papers'),
     url(r'^reader$', views.ReadingView.as_view(), name='reader'),
+    url(r'^tag$', views.PaperListByTagView.as_view(), name='papers_by_tag'),
 ]

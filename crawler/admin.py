@@ -1,5 +1,5 @@
 from django.contrib import admin
-from crawler.models import Author, Document, Supp, Event, PDFFile
+from crawler.models import Author, Document, Supp, Event, PDFFile, Tag, TagAssignment
 # Register your models here.
 
 class MembershipInline(admin.TabularInline):
@@ -20,3 +20,5 @@ admin.site.register(Author, AuthorAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Supp)
 admin.site.register(PDFFile)
+admin.site.register(Tag)
+admin.site.register(TagAssignment)

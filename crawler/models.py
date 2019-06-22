@@ -80,4 +80,35 @@ class PDFFile(models.Model):
 
 
 
+class Tag(models.Model):
+    """
+    Document-level labels which are provided from users.
+    These labels can be noisy.
+    """
+    text = models.CharField(max_length=512)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+
+    def __str__(self):
+        return self.text
+
+    class Meta:
+        unique_together = ('text',)
+
+
+class TagAssignment(models.Model):
+    """
+    Assign a tag into a document
+    """
+    doc = models.ForeignKey(Document, on_delete=models.CASCADE)
+    tag = models.ForeignKey(Tag, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "{} - {}".format(self.doc.title, self.tag.text)
+
+    class Meta:
+        unique_together = ('doc', 'tag')
 
