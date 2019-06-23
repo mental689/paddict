@@ -36,8 +36,8 @@ These document-level labels are noisy, to be cautious!
 
 * Currently, to monitor the reading processes, we employ several features: 
 
-	* __Webcam__: to capture the reading profile. Unlike other activities such as driving, which need part information like hand signals (driving is done by hands), reading is completely done by eyes. Therefore, we focus on monitoring the face information only.
-	* [__Blinking__](https://en.wikipedia.org/wiki/Blinking): readers who is likely to fall asleep during reading papers often have abnormal blinking. We choose this as our analysis target.
+	* __Webcam__: to capture the reading profile. Unlike other activities such as driving, which need part information like hand signals (driving is done by hands and fingers), reading is completely done by eyes. Therefore, we focus on monitoring the face information only.
+	* [__Blinking__](https://en.wikipedia.org/wiki/Blinking): readers who are likely to fall asleep during reading papers often have __abnormal__ blinking. We choose this as our analysis target.
 
 ### Acknowledgement
 
