@@ -9,77 +9,112 @@ Reader
 <form method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id" name="id" value="{{paper.id}}">
-<div class="page-inner">
-	<div class="row">
-		<div class="col-md-4">
-			<div class="card">
-				<div class="card-header">
-						<div class="card-head-row">
-							<div class="card-title">Tags</div>
-										<div class="card-tools">
-											<input class="btn btn-info btn-border btn-round btn-sm mr-2" type="submit" value="Submit">										</div>
-						</div></div>
-				<div class="card-body">
-					<div><b>{% for ta in tags %}<a href="/crawler/tag?tag={{ta.tag.text}}">{{ta.tag.text}}</a>, {%endfor%}</b></div>
-					<div class="form-group" id="tags">
+	<div class="page-inner">
+		<div class="row">
+			<div class="col-md-4">
+				<div class="card">
+					<div class="card-body">
+						<center><div id="camera" style="width:100%; height:240px;"></div></center>
+						<div id="monitor_result"></div>
 					</div>
 				</div>
-
-			</div>
-			<div class="card">
+				<div class="card">
+					<div class="card-header">
+						<div class="card-head-row">
+							<div class="card-title">Tags</div>
+							<div class="card-tools">
+								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
+									<li class="nav-item submenu">
+										<input class="nav-link active show" type="submit" value="Submit">
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div><b>{% for ta in tags %}<a href="/crawler/tag?tag={{ta.tag.text}}">{{ta.tag.text}}</a>, {%endfor%}</b></div>
+						<div class="form-group" id="tags"></div>
+					</div>
+				</div>
+				<!--div class="card">
+					<div class="card-header">
+						<div class="card-head-row">
+							<div class="card-title">Comments</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="form-group">
+							<div class="input-group">
+								<div class="input-group-prepend">
+									<span class="input-group-text">With textarea</span>
+								</div>
+								<textarea class="form-control" aria-label="With textarea"></textarea>
+							</div>
+						</div>		
+					</div>
+				</div-->
+				<div class="card">
 					<div class="card-header">
 						<div class="card-head-row">
 							<div class="card-title">{{paper.title}}</div>
-										<div class="card-tools">
-											<a href="/crawler/reader?id={{paper.id|add:-1}}" class="btn btn-info btn-border btn-round btn-sm mr-2">
-												<span class="btn-label">
-													<i class="fa fa-pencil"></i>
-												</span>
-												Previous
-											</a>
-											<a href="/crawler/reader?id={{paper.id|add:1}}" class="btn btn-info btn-border btn-round btn-sm mr-2">
-												<span class="btn-label">
-													<i class="fa fa-pencil"></i>
-												</span>
-												Next
-											</a>
-											<!--a href="#" class="btn btn-info btn-border btn-round btn-sm">
-												<span class="btn-label">
-													<i class="fa fa-print"></i>
-												</span>
-												Print
-											</a>-->
-										</div>
-									</div>
-								</div>
-				<div class="card-body">
-					<div><p><b>Authors: {%for a in paper.authors.all%}{{a.name}} {%endfor%}</b></p></div>
-					<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
-					<div><b>Abstract:</b>{{paper.abstract}}</div>
+							<div class="card-tools">
+								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
+									<li class="nav-item submenu">
+										<a href="/crawler/reader?id={{paper.id|add:-1}}" class="nav-link">Previous</a>
+									</li>
+									<li class="nav-item submenu">
+										<a href="/crawler/reader?id={{paper.id|add:1}}" class="nav-link">Next</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div><p><b>Authors: {%for a in paper.authors.all%}{{a.name}} {%endfor%}</b></p></div>
+						<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
+						<div><b>Abstract:</b>{{paper.abstract}}</div>
+					</div>
 				</div>
-			</div>
-			
-		</div>
-		<div class="col-md-8">
-			<div class="card">
-				<div class="card-body">
-					<div id="example1"></div>		
-				</div>
-			</div>
-			<div class="card">
-				<div class="card-body">
-					<div id="words"></div>
-				</div>
-			</div>
-		</div>
+				<div class="card">
+					<div class="card-header">
+						<div class="card-title">Comments</div>
+					</div>
+					<div class="card-body">
+						<ol class="activity-feed" id="comments">
+							{% for c in comments %}
+							<li class="feed-item feed-item-secondary">
+								<time class="date" datetime="9-25">{{c.updated_at}}</time>
+								<span class="text">{{c.text}}</span>
+							</li>
+							{% endfor %}
+						</ol>
 
+						<div class="form-group">
+							<input type="text" class="form-control form-control" id="comment" name="comment" placeholder="Your comments">
+						</div>
+					</div>
+				</div>	
+			</div>
+			<div class="col-md-8">
+				<div class="card">
+					<div class="card-body">
+						<div id="example1"></div>		
+					</div>
+				</div>
+				<div class="card">
+					<div class="card-body">
+						<div id="words"></div>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
-</div>
 </form>
 {% endblock %}
 
 {% block js %}
 	<script src="{% static 'js/plugin/taggle.js/example/js/taggle.min.js' %}"></script>
+	<script src="{% static 'js/webcam.min.js' %}"></script>
 	<script type="text/javascript">
 		jQuery.curCSS = jQuery.css;
 		PDFObject.embed("/static/paper{{paper.id}}.pdf", "#example1");
@@ -125,23 +160,39 @@ Reader
         			.attr("viewBox", "0 0 750 300")  // ViewBox : x, y, width, height
             			.append("g")
             			.attr("transform", "translate(375,150)")
-      .selectAll("text")
-        .data(words)
-      .enter().append("text")
-        .style("font-size", function(d) { return d.size + "px"; })
-        .style("font-family", "Impact")
-        .style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
-        .attr("text-anchor", "middle")
-        .attr("transform", function(d) {
-          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
-        })
-        .text(function(d) { return d.text; });
+      				.selectAll("text")
+        			.data(words)
+      				.enter().append("text")
+        			.style("font-size", function(d) { return d.size + "px"; })
+        			.style("font-family", "Impact")
+        			.style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
+        			.attr("text-anchor", "middle")
+        			.attr("transform", function(d) {
+          				return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        			})
+        			.text(function(d) { return d.text; });
    			}    
  
-		}());  
+		}());
+		/*tinyMCE.init({
+    			mode: "textareas",
+    			theme: "advanced",
+    			plugins: "spellchecker,directionality,paste,searchreplace",
+    			language: "{{ language }}",
+    			directionality: "{{ directionality }}",
+    			spellchecker_languages : "{{ spellchecker_languages }}",
+    			spellchecker_rpc_url : "{{ spellchecker_rpc_url }}"
+		});*/
+		$(document).ready(function() {
+			$('#comment').keypress(function (e) {
+  			if (e.which == 13) {
+    				$('form').submit();
+    				return false; 
+			}});
+			Webcam.attach('#camera');
+		});
 	</script>
 {% endblock %}
 
 {% block css %}
-<!--link rel="stylesheet" href="{% static 'js/plugin/tagify/style.css' %}"-->
 {% endblock %}

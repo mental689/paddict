@@ -45,6 +45,8 @@
 	</style>
 	{% block css %}
 	{% endblock %}
+	{{ form.media }}
+	<script type="text/javascript" src="{% static "tiny_mce/tiny_mce.js" %}"></script>
 </head>
 <body>
 	<div class="wrapper">
@@ -297,7 +299,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfobject/2.1.1/pdfobject.js"></script>
 
 {% block js %}
-<script >
+	<script >
 		$(document).ready(function() {
 			$('#basic-datatables').DataTable({
 			});
@@ -359,11 +361,16 @@
     				moreText.style.display = "inline";
   			}
 		}
+		tinyMCE.init({
+    			mode: "textareas",
+    			theme: "advanced",
+    			plugins: "spellchecker,directionality,paste,searchreplace",
+    			language: "{{ language }}",
+    			directionality: "{{ directionality }}",
+    			spellchecker_languages : "{{ spellchecker_languages }}",
+    			spellchecker_rpc_url : "{{ spellchecker_rpc_url }}"
+		});
 	</script>
 {% endblock %}
-
-<!-- Azzara DEMO methods, don't include it in your project! -->
-<!--<script src="{% static '/js/setting-demo.js' %}"></script>
-<script src="{% static '/js/demo.js' %}"></script>-->
 </body>
 </html>

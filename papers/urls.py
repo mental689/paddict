@@ -22,4 +22,5 @@ from crawler.urls import *
 urlpatterns = [
         url(r'^crawler/', include('crawler.urls')),
     path('admin/', admin.site.urls),
+    url(r'^tinymce/', include('tinymce.urls')),
 ]

@@ -12,8 +12,6 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 
 ### TODO
 
-* Add interactive tools to memo, take notes and manage reading process.
-
 * Extract references list of each papers.
 
 
@@ -33,6 +31,13 @@ The relationship between query tag and the supporting tag set is exploited to en
 These document-level labels are noisy, to be cautious!
 
 * Now use OCR to extract the whole text content from PDF. The text is then tokenized and parsed into keywords and then is visualized in the reader page.
+
+* Added note features.
+
+* Currently, to monitor the reading processes, we employ several features: 
+
+	* __Webcam__: to capture the reading profile. Unlike other activities such as driving, which need part information like hand signals (driving is done by hands), reading is completely done by eyes. Therefore, we focus on monitoring the face information only.
+	* [__Blinking__](https://en.wikipedia.org/wiki/Blinking): readers who is likely to fall asleep during reading papers often have abnormal blinking. We choose this as our analysis target.
 
 ### Acknowledgement
 

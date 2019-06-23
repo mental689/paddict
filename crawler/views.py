@@ -78,6 +78,7 @@ class ReadingView(TemplateView):
         print(ctx['tags'])
         ctx['vocab'] = Tag.objects.all()
         ctx['words'] = count_words(ctx['paper'].words.split(' '))
+        ctx['comments'] = Comment.objects.filter(doc=ctx['paper']).all()
         return self.render_to_response(ctx)
 
     def post(self, request, *args, **kwargs):
@@ -119,6 +120,12 @@ class ReadingView(TemplateView):
         print(ctx['tags'])
         ctx['vocab'] = Tag.objects.all()
         ctx['words'] = count_words(ctx['paper'].words.split(' '))
+        comment = request.POST.get('comment', '')
+        print(comment)
+        if len(comment) > 10 and len(comment) < 500:
+            c = Comment(text=comment, doc=ctx['paper'])
+            c.save()
+        ctx['comments'] = Comment.objects.filter(doc=ctx['paper']).all()
         return self.render_to_response(ctx)
 
     

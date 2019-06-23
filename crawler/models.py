@@ -1,4 +1,5 @@
 from django.db import models
+from tinymce.models import HTMLField
 
 # Create your models here.
 class Event(models.Model):
@@ -41,6 +42,7 @@ class Document(models.Model):
     authors = models.ManyToManyField(Author)
     centred = models.BooleanField(default=False)
     words = models.TextField(default="")
+    notes = HTMLField(default="")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -112,4 +114,15 @@ class TagAssignment(models.Model):
 
     class Meta:
         unique_together = ('doc', 'tag')
+
+
+class Comment(models.Model):
+    text = models.TextField(default="")
+    doc = models.ForeignKey(Document, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return "{} - {}".format(self.doc.title, self.text)
+
 
