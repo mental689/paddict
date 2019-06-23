@@ -14,6 +14,8 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 
 * Add interactive tools to memo, take notes and manage reading process.
 
+* Extract references list of each papers.
+
 
 ### Changes
 
@@ -29,6 +31,8 @@ A visualization of the collaboration graph with the CVPR2019 dataset can be foun
 When a user input a **query tag**, it will be matched with the **supporting set** of tags in the relational database.
 The relationship between query tag and the supporting tag set is exploited to enhance the tagging process.
 These document-level labels are noisy, to be cautious!
+
+* Now use OCR to extract the whole text content from PDF. The text is then tokenized and parsed into keywords and then is visualized in the reader page.
 
 ### Acknowledgement
 
