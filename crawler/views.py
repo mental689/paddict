@@ -9,6 +9,16 @@ import networkx as nx
 import re
 
 
+def count_words(words):
+    counters = {}
+    for word in words:
+        if word in counters:
+            counters[word] += 1
+        else:
+            counters[word] = 1
+    return [{'word': w, 'count': counters[w]} for w in counters]
+
+
 class IndexView(TemplateView):
     template_name = "index.html"
 
@@ -67,6 +77,7 @@ class ReadingView(TemplateView):
         ctx['tags'] = TagAssignment.objects.filter(doc=ctx['paper']).all()
         print(ctx['tags'])
         ctx['vocab'] = Tag.objects.all()
+        ctx['words'] = count_words(ctx['paper'].words.split(' '))
         return self.render_to_response(ctx)
 
     def post(self, request, *args, **kwargs):
@@ -107,6 +118,7 @@ class ReadingView(TemplateView):
         ctx['tags'] = TagAssignment.objects.filter(doc=ctx['paper']).all()
         print(ctx['tags'])
         ctx['vocab'] = Tag.objects.all()
+        ctx['words'] = count_words(ctx['paper'].words.split(' '))
         return self.render_to_response(ctx)
 
     

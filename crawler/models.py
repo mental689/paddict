@@ -40,6 +40,7 @@ class Document(models.Model):
     abstract = models.CharField(max_length=20000, blank=True, null=True)
     authors = models.ManyToManyField(Author)
     centred = models.BooleanField(default=False)
+    words = models.TextField(default="")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

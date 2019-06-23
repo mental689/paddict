@@ -66,6 +66,11 @@ Reader
 					<div id="example1"></div>		
 				</div>
 			</div>
+			<div class="card">
+				<div class="card-body">
+					<div id="words"></div>
+				</div>
+			</div>
 		</div>
 
 	</div>
@@ -82,21 +87,58 @@ Reader
 			tags: [],
     			duplicateTagClass: 'bounce'
 		});
-var container = tagger.getContainer();
-var input = tagger.getInput();
+		var container = tagger.getContainer();
+		var input = tagger.getInput();
 
-$(input).autocomplete({
-    source: [{% for v in vocab %}'{{v.text}}',{% endfor %}], // See jQuery UI documentaton for options
-    appendTo: container,
-    position: { at: "left bottom", of: container },
-    select: function(event, data) {
-        event.preventDefault();
-        //Add the tag if user clicks
-        if (event.which === 1) {
-            tagger.add(data.item.value);
-        }
-    }
-});
+		$(input).autocomplete({
+    			source: [{% for v in vocab %}'{{v.text}}',{% endfor %}], // See jQuery UI documentaton for options
+   			appendTo: container,
+   		 	position: { at: "left bottom", of: container },
+    			select: function(event, data) {
+        			event.preventDefault();
+        			//Add the tag if user clicks
+        			if (event.which === 1) {
+            				tagger.add(data.item.value);
+        			}
+    			}
+		});
+		var data = [{% for word in words %}{"word": "{{ word.word }}", "count": {{ word.count}}},{% endfor %}];
+		$(function(){
+ 		 	var countMax = d3.max(data, function(d){ return d.count} );
+  			var sizeScale = d3.scaleLinear().domain([0, countMax]).range([10, 100])
+    			d3.layout.cloud().size([750, 300])
+        			.words(data.map(function(d) {
+                			return {text: d.word, size: sizeScale(d.count)}; 
+            				})
+        			) 
+				.rotate(function() { return (~~(Math.random() * 6) - 3) * 30; })
+				.font("Impact")　
+				.fontSize(function(d) { return d.size; })
+        			.on("end", draw)
+        			.start();
+    
+		   	function draw(words) {
+        			d3.select("#words").append("svg")
+            			.attr("width", "100%")
+           			.attr("height", 300)
+				.attr("class", "ui fluid image") // style using semantic ui
+        			.attr("viewBox", "0 0 750 300")  // ViewBox : x, y, width, height
+            			.append("g")
+            			.attr("transform", "translate(375,150)")
+      .selectAll("text")
+        .data(words)
+      .enter().append("text")
+        .style("font-size", function(d) { return d.size + "px"; })
+        .style("font-family", "Impact")
+        .style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
+        .attr("text-anchor", "middle")
+        .attr("transform", function(d) {
+          return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        })
+        .text(function(d) { return d.text; });
+   			}    
+ 
+		}());  
 	</script>
 {% endblock %}
 
