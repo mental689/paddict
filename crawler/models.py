@@ -1,5 +1,7 @@
 from django.db import models
 from tinymce.models import HTMLField
+import neomodel
+from django_neomodel import DjangoNode
 
 # Create your models here.
 class Event(models.Model):
@@ -126,3 +128,19 @@ class Comment(models.Model):
         return "{} - {}".format(self.doc.title, self.text)
 
 
+
+# Neomodel definitions
+
+class Coauthorship(neomodel.StructuredRel):
+    num_papers = neomodel.IntegerProperty(default = 0)
+
+
+class AuthorNode(DjangoNode):
+    author_id = neomodel.IntegerProperty(unique_index=True) # This correspond one-to-one to Author model in SQL
+    coauthors = neomodel.Relationship('AuthorNode', 'COAUTHOR', model=Coauthorship)
+    papers = neomodel.RelationshipTo('DocumentNode', 'OWNS')
+
+
+class DocumentNode(DjangoNode):
+    document_id = neomodel.IntegerProperty(unique_index=True) # one-to-one to Document model in SQL
+    authors = neomodel.RelationshipFrom('AuthorNode', 'OWNS')

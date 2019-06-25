@@ -37,8 +37,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_neomodel',
     'crawler',
-    'tinymce',
     'rest_framework',
     'django_filters',
 ]
@@ -137,3 +137,8 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 2
 }
 
+NEOMODEL_NEO4J_BOLT_URL = 'bolt://neo4j:paddict@localhost:7687'
+NEOMODEL_SIGNALS = True
+NEOMODEL_FORCE_TIMEZONE = False
+NEOMODEL_ENCRYPTED_CONNECTION = True
+NEOMODEL_MAX_POOL_SIZE = 50

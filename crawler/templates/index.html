@@ -182,6 +182,7 @@
 												<tr>
 													<th>Title</th>
 													<th>Authors</th>
+													<th>Event</th>
 													<th>Link</th>
 												</tr>
 											</thead>
@@ -189,6 +190,7 @@
 												<tr>
 													<th>Title</th>
 													<th>Authors</th>
+													<th>Event</th>
 													<th>Link</th>
 												</tr>
 											</tfoot>
@@ -205,6 +207,7 @@
 														<b>{{a.name}}</b> 
 														{% endfor %}</p>
 													</td>
+													<td>{{paper.event.shortname}}</td>
 													<td><a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">View at publisher</a></td>
 												</tr>
 												{% endfor %}

@@ -185,6 +185,15 @@ class NIPSDownloader(Downloader):
                     doc.save()
         f.close()
 
+    def get_abstract(self, url):
+        base_url ='http://papers.nips.cc/'
+        url = '{}/{}'.format(base_url, url)
+        soup = parse_html(get_html(url))
+        abstracts = soup.find_all('p', attrs={'class': 'abstract'})
+        abstract = ""
+        if len(abstracts) > 0:
+            abstract = abstracts[0].text
+        return abstract
 
 
 if __name__ == '__main__':

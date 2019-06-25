@@ -15,6 +15,8 @@ from crawler.pdf import *
 def count_words(words):
     counters = {}
     for word in words:
+        word = re.sub('[^0-9a-zA-Z]+','',word).lower()
+        if len(word) < 2: continue
         if word in counters:
             counters[word] += 1
         else:
