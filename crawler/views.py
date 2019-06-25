@@ -7,6 +7,9 @@ from django.views.generic import TemplateView
 import pickle
 import networkx as nx
 import re
+import nltk
+
+from crawler.pdf import *
 
 
 def count_words(words):
@@ -23,9 +26,19 @@ class IndexView(TemplateView):
     template_name = "index.html"
 
     def get(self, request, *args, **kwargs):
+        name = request.GET.get('event', None)
+        events = Event.objects.filter(shortname__contains=name).all()
         ctx = super().get_context_data(**kwargs)
-        ctx['authors'] = Author.objects.all()
-        ctx['papers'] = Document.objects.all()
+        ctx['authors'] = Author.objects.filter(document__event__in=events).all().distinct()
+        ctx['papers'] = Document.objects.filter(event__in=events).all()
+        ctx['centred'] = Document.objects.filter(centred=True, event__in=events).all()
+        titles =[p.title for p in ctx['papers']]
+        titles = '\n'.join(titles)
+        tokens = nltk.word_tokenize(titles)
+        words = [w.lower() for w in tokens if w.lower() not in STOPWORDS and len(w) > 1]
+        ctx['words'] = count_words(words)
+        G = pickle.load(open('{}/author_graph_cvpr_2013_2019.pkl'.format(BASE_DIR), 'rb'))
+        ctx['max_cc'] = len(list(max(nx.connected_components(G))))
         return self.render_to_response(ctx)
 
 
@@ -61,7 +74,7 @@ class ReadingView(TemplateView):
         ctx['paper'] = Document.objects.filter(id=id).first()
         # find the largest connect components in collaboration network,
         # for which one of the authors of this paper belongs to.
-        G = pickle.load(open('{}/author_graph.pkl'.format(BASE_DIR), 'rb'))
+        G = pickle.load(open('{}/author_graph_cvpr_2013_2019.pkl'.format(BASE_DIR), 'rb'))
         components = nx.connected_component_subgraphs(G, copy=True)
         paper_components = []
         authors = ctx['paper'].authors.all()

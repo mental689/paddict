@@ -13,7 +13,7 @@ Reader
 		<div class="row">
 			<div class="col-md-4">
 				<div class="card">
-					<div class="card-body">
+					<div class="card-header">
 						<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
 							<li class="nav-item submenu">
 								<button id="btn-start-recording" class="nav-link active show">Start Recording</button>
@@ -22,6 +22,8 @@ Reader
 								<button id="btn-stop-recording" disabled class="nav-link active show">Stop Recording</button>
 							</li>
 						</ul>
+					</div>
+					<div class="card-body">
 						<center><video controls autoplay playsinline></video></center>
 					</div>
 				</div>
@@ -104,7 +106,6 @@ Reader
 
 {% block js %}
 	<script src="{% static 'js/plugin/taggle.js/example/js/taggle.min.js' %}"></script>
-	<script src="{% static 'js/webcam.min.js' %}"></script>
 	<!-- web streams API polyfill to support Firefox -->
     	<script src="https://unpkg.com/@mattiasbuelens/web-streams-polyfill/dist/polyfill.min.js"></script>
 

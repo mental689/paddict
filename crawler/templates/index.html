@@ -48,6 +48,10 @@
 	{{ form.media }}
 	<script type="text/javascript" src="{% static "tiny_mce/tiny_mce.js" %}"></script>
 	<script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
+	<!-- Visualizing graph -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.7.3/cytoscape.esm.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.7.3/cytoscape.esm.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.7.3/cytoscape.min.js"></script>
 </head>
 <body>
 	<div class="wrapper">
@@ -76,7 +80,7 @@
 												<p class="card-category">Unique authors</p>
 												<h4 class="card-title">{{ authors|length }}</h4>
 												<p class="card-category">Authors in largest CC</p>
-												<h4 class="card-title">2563</h4>
+												<h4 class="card-title">{{ max_cc }}</h4>
 											</div>
 										</div>
 									</div>
@@ -97,7 +101,7 @@
 												<p class="card-category">Papers</p>
 												<h4 class="card-title">{{ papers|length }}</h4>
 												<p class="card-category">Papers in largest CC</p>
-												<h4 class="card-title">838</h4>
+												<h4 class="card-title">{{ centred|length }}</h4>
 											</div>
 										</div>
 									</div>
@@ -110,7 +114,7 @@
 							<div class="card">
 								<div class="card-header">
 									<div class="card-head-row">
-										<div class="card-title">Collaboration between Authors</div>
+										<div class="card-title">Coauthorships</div>
 										<div class="card-tools">
 											<!--<a href="#" class="btn btn-info btn-border btn-round btn-sm mr-2">
 												<span class="btn-label">
@@ -130,7 +134,8 @@
 								<div class="card-body">
 									<div class="chart-container" style="min-height: 375px">
 										<!--<canvas id="statisticsChart"></canvas>-->
-										<iframe width="500" height=500" frameborder="0" scrolling="no" src="//plot.ly/~marxen68/4.embed"></iframe>
+										<!--iframe width="500" height="500" frameborder="0" scrolling="no" src="//plot.ly/~marxen68/6.embed"></iframe-->
+										<img src="{% static 'img/coau.png' %}" width="100%"/>
 									</div>
 									<div id="myChartLegend"></div>
 								</div>
@@ -159,7 +164,7 @@
 								</div>
 								<div class="card-body">
 									<div class="chart-container" style="min-height: 375px">
-										<img src="{% static 'img/alice.png' %}" width=500 />
+										<div id="words"></div>
 									</div>
 									<div id="myChartLegend"></div>
 								</div>
@@ -191,7 +196,6 @@
 											</tfoot>
 											<tbody>
 												{% for paper in papers %}
-												{% if paper.centred %}
 												<tr>
 													<td><h4 class="card-title">{{ paper.title }}</h4>
 														<span id="dots-{{paper.id}}"></span>
@@ -203,9 +207,8 @@
 														<b>{{a.name}}</b> 
 														{% endfor %}</p>
 													</td>
-													<td><a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">CVF</a></td>
+													<td><a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">View at publisher</a></td>
 												</tr>
-												{% endif %}
 												{% endfor %}
 											</tbody>
 										</table>
@@ -302,6 +305,43 @@
 {% block js %}
 	<script >
 		$(document).ready(function() {
+			var data = [{% for word in words %}{"word": "{{ word.word }}", "count": {{ word.count}}},{% endfor %}];
+			$(function(){
+ 		 		var countMax = d3.max(data, function(d){ return d.count} );
+  				var sizeScale = d3.scaleLinear().domain([0, countMax]).range([10, 100])
+    				d3.layout.cloud().size([500, 500])
+        			.words(data.map(function(d) {
+                			return {text: d.word, size: sizeScale(d.count)}; 
+            				})
+        			) 
+				.rotate(function() { return (~~(Math.random() * 6) - 3) * 30; })
+				.font("Impact")　
+				.fontSize(function(d) { return d.size; })
+        			.on("end", draw)
+        			.start();
+    
+		   		function draw(words) {
+        			d3.select("#words").append("svg")
+            			.attr("width", "100%")
+           			.attr("height", 500)
+				.attr("class", "ui fluid image") // style using semantic ui
+        			.attr("viewBox", "0 0 500 500")  // ViewBox : x, y, width, height
+            			.append("g")
+            			.attr("transform", "translate(250,250)")
+      				.selectAll("text")
+        			.data(words)
+      				.enter().append("text")
+        			.style("font-size", function(d) { return d.size + "px"; })
+        			.style("font-family", "Impact")
+        			.style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
+        			.attr("text-anchor", "middle")
+        			.attr("transform", function(d) {
+          				return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        			})
+        			.text(function(d) { return d.text; });
+   				}    
+			}());
+
 			$('#basic-datatables').DataTable({
 			});
 

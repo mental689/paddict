@@ -10,7 +10,7 @@ class Event(models.Model):
 
     class Meta:
         ordering =('shortname',)
-        unique_together = ['name']
+        #unique_together = ['name']
         indexes = [
                 models.Index(fields=['name', 'shortname'], name='eventname'),
                 ]
