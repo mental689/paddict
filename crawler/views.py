@@ -8,6 +8,8 @@ import pickle
 import networkx as nx
 import re
 import nltk
+import neomodel
+
 
 from crawler.pdf import *
 
@@ -39,8 +41,12 @@ class IndexView(TemplateView):
         tokens = nltk.word_tokenize(titles)
         words = [w.lower() for w in tokens if w.lower() not in STOPWORDS and len(w) > 1]
         ctx['words'] = count_words(words)
-        G = pickle.load(open('{}/author_graph_cvpr_2013_2019.pkl'.format(BASE_DIR), 'rb'))
-        ctx['max_cc'] = len(list(max(nx.connected_components(G))))
+        #G = pickle.load(open('{}/author_graph_cvpr_2013_2019.pkl'.format(BASE_DIR), 'rb'))
+        #ctx['max_cc'] = len(list(max(nx.connected_components(G))))
+        query = "CALL algo.unionFind.stream('MATCH (p:AuthorNode) WHERE p.author_id IN [{}] RETURN id(p) as id', 'MATCH (p1:AuthorNode)-[f:COAUTHOR]->(p2:AuthorNode) RETURN id(p1) as source, id(p2) as target, f.num_papers as weight', ".format(','.join([str(a.id) for a in ctx['authors']]))
+        query += "{graph:'cypher'}) YIELD nodeId, setId RETURN setId,count(nodeId) as size_of_component ORDER BY size_of_component DESC LIMIT 20;"
+        results, meta = neomodel.db.cypher_query(query)
+        ctx['max_cc'] = results[0][1]
         return self.render_to_response(ctx)
 
 
