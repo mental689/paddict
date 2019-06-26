@@ -212,7 +212,7 @@
 												</tr>
 											</tfoot>
 											<tbody>
-												{% for paper in papers %}
+												{% for paper in centred %}
 												<tr>
 													<td><h4 class="card-title">{{ paper.title }}</h4>
 														<span id="dots-{{paper.id}}"></span>
@@ -225,7 +225,7 @@
 														{% endfor %}</p>
 													</td>
 													<td>{{paper.event.shortname}}</td>
-													<td><a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">View at publisher</a></td>
+													<td><a href="/crawler/reader?id={{paper.id}}" target="_blank">View PDF</a></td>
 												</tr>
 												{% endfor %}
 											</tbody>
@@ -498,7 +498,7 @@
   		minTemp: 1.0
 	};
 
-	cy.layout( options );	
+	cy.layout( options ).run();	
 	</script>
 {% endblock %}
 </body>

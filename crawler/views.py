@@ -33,16 +33,15 @@ class IndexView(TemplateView):
 
     def get(self, request, *args, **kwargs):
         name = request.GET.get('event', None)
+        try:
+            cc = int(request.GET.get('cc', None)) # the index of the connected components which will be shown.
+        except:
+            cc = None
         events = Event.objects.filter(shortname__contains=name).all()
         ctx = super().get_context_data(**kwargs)
         ctx['events'] = events
         ctx['authors'] = Author.objects.filter(document__event__in=events).all().distinct()
         ctx['papers'] = Document.objects.filter(event__in=events).all()
-        titles =[p.title for p in ctx['papers']]
-        titles = '\n'.join(titles)
-        tokens = nltk.word_tokenize(titles)
-        words = [w.lower() for w in tokens if w.lower() not in STOPWORDS and len(w) > 1]
-        ctx['words'] = count_words(words)
         # Query Neo4J to search for leargest connected components in the coauthorship network
         # The following query returns the whole papers and authors in each components.
         query = "CALL algo.unionFind.stream('MATCH (d) WHERE CASE WHEN \"AuthorNode\" in LABELS(d) THEN d.author_id IN [{}] ELSE d.document_id IN [{}] END RETURN id(d) as id', 'MATCH (d:DocumentNode)-[]-(a:AuthorNode) RETURN id(d) as source, id(a) as target UNION MATCH (a1:AuthorNode)-[]-(a2:AuthorNone) RETURN id(a1) as source, id(a2) as target', ".format(','.join([str(a.id) for a in ctx['authors']]), ','.join([str(d.id) for d in ctx['papers']]))
@@ -51,16 +50,29 @@ class IndexView(TemplateView):
         ctx['max_cc_authors'] = 0
         ctx['max_cc_papers'] = 0
         authors_idx = [an.id for an in AuthorNode.nodes.all()]
-        papers_idx = [dn.document_id for dn in DocumentNode.nodes.all()]
-        for id in results[0][1]:
+        authors_map = {}
+        docs_map = {}
+        for an in AuthorNode.nodes.all():
+            authors_map[an.id] = an.author_id
+        for dn in DocumentNode.nodes.all():
+            docs_map[dn.id] = dn.document_id
+        #papers_idx = [dn.document_id for dn in DocumentNode.nodes.all()]
+        community_papers_idx = []
+        community_authors_idx = []
+        cc_id = cc-1 if cc is not None else 0
+        for id in results[cc_id][1]:
             if id in authors_idx:
                 ctx['max_cc_authors'] += 1
+                community_authors_idx.append(authors_map[id])
             else:
                 ctx['max_cc_papers'] += 1
+                community_papers_idx.append(docs_map[id])
         # Number of connected components (groups of separated authors and papers):
         ctx['cc'] = len(results)
         ctx['cc_max'] = results[0][2]
-        ctx['centred'] = Document.objects.filter(id__in=papers_idx, event__in=events).all()
+        ctx['centred'] = Document.objects.filter(id__in=community_papers_idx, event__in=events).all()
+        if cc is not None: ctx['authors'] = Author.objects.filter(document__event__in=events, id__in=community_authors_idx).all()
+        if cc is not None: ctx['papers'] = ctx['centred']
         triplets, _ = build_collaboration_graph(ctx['papers'], ctx['authors'])
         ctx['edges'] = []
         nodes = []
@@ -71,6 +83,12 @@ class IndexView(TemplateView):
                 'id1': id1, 'id2': id2, 'w': w
                 })
         ctx['nodes'] = list(set(nodes))
+        # For word cloud
+        titles =[p.title for p in ctx['papers']]
+        titles = '\n'.join(titles)
+        tokens = nltk.word_tokenize(titles)
+        words = [w.lower() for w in tokens if w.lower() not in STOPWORDS and len(w) > 1]
+        ctx['words'] = count_words(words)
         return self.render_to_response(ctx)
 
 
