@@ -1,0 +1,1992 @@
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Archiving and Interchange DTD v1.0 20120330//EN" "JATS-archivearticle1.dtd">
+<article xmlns:xlink="http://www.w3.org/1999/xlink">
+  <front>
+    <journal-meta>
+      <journal-title-group>
+        <journal-title>CVPR.</journal-title>
+      </journal-title-group>
+    </journal-meta>
+    <article-meta>
+      <article-id pub-id-type="doi">10.1109/CVPR.2013.245</article-id>
+      <title-group>
+        <article-title>PDM-ENLOR: Learning Ensemble of Local PDM-based Regressions</article-title>
+      </title-group>
+      <contrib-group>
+        <contrib contrib-type="author">
+          <string-name>Y.H. Le</string-name>
+          <xref ref-type="aff" rid="aff0">0</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <string-name>U. Kurkure</string-name>
+          <xref ref-type="aff" rid="aff0">0</xref>
+        </contrib>
+        <contrib contrib-type="author">
+          <string-name>I.A. Kakadiaris</string-name>
+          <xref ref-type="aff" rid="aff0">0</xref>
+        </contrib>
+        <aff id="aff0">
+          <label>0</label>
+          <institution>Computational Biomedicine Lab, University of Houston</institution>
+          ,
+          <addr-line>Houston, TX</addr-line>
+          ,
+          <country country="US">USA</country>
+        </aff>
+      </contrib-group>
+      <pub-date>
+        <year>2013</year>
+      </pub-date>
+      <volume>245</volume>
+      <abstract>
+        <p>Statistical shape models, such as Active Shape Models (ASMs), suffer from their inability to represent a large range of variations of a complex shape and to account for the large errors in detection of model points. We propose a novel method (dubbed PDM-ENLOR) that overcomes these limitations by locating each shape model point individually using an ensemble of local regression models and appearance cues from selected model points. Our method first detects a set of reference points which were selected based on their saliency during training. For each model point, an ensemble of regressors is built. From the locations of the detected reference points, each regressor infers a candidate location for that model point using local geometric constraints, encoded by a point distribution model (PDM). The final location of that point is determined as a weighted linear combination, whose coefficients are learnt from the training data, of candidates proposed from its ensemble's component regressors. We use different subsets of reference points as explanatory variables for the component regressors to provide varying degrees of locality for the models in each ensemble. This helps our ensemble model to capture a larger range of shape variations as compared to a single PDM. We demonstrate the advantages of our method on the challenging problem of segmenting gene expression images of mouse brain.</p>
+      </abstract>
+    </article-meta>
+  </front>
+  <body>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_1_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_2_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_3_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_3_2.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_2.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_3.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_4.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_5.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_6.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_7.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_8.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_4_9.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_5_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_6_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_7_1.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_7_2.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_7_3.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_7_4.png" />
+    </fig>
+    <fig>
+      <graphic xlink:href="static/paper1501.images/img_8_1.png" />
+    </fig>
+    <sec id="sec-1">
+      <title>1. Introduction</title>
+      <p>
+        Statistical shape models are widely used for automated
+image segmentation ([
+        <xref ref-type="bibr" rid="ref1 ref10 ref11 ref2 ref29 ref31 ref9">9, 11, 10, 31, 1, 2, 29</xref>
+        ]) and landmark
+localization ([
+        <xref ref-type="bibr" rid="ref25 ref32">32, 25</xref>
+        ]). They overcome some of the
+limitations of the deformable shape models by imposing
+geometric constraints that are learned from a training dataset.
+The active shape model (ASM [
+        <xref ref-type="bibr" rid="ref7">7</xref>
+        ]) is one of the most
+popular statistical shape models that restricts the shape space
+to limit the range of possible shapes the model can form.
+However, one of their major limitations lies in their ability
+to represent the variations of a complex shape model,
+especially when the number of training samples is much smaller
+than the dimensions of the shape model. Thus, they
+provide a restricted subspace of shapes that can be insufficient
+to represent the shape variations. Moreover, it is difficult
+to account for the large errors in the detection of the model
+points due to the noisy, incomplete or complex appearance
+information in the image. Such erroneous detections of a
+large number of model points can drive the fitting to an
+incorrect solution.
+      </p>
+      <p>
+        In this paper, we propose a new approach for statistical
+model fitting that also provides solutions to the problems of
+the model flexibility and the model point detection errors.
+Our PDM-ENLOR locates each shape model point
+individually using an ensemble of regression models built for that
+specific point. Specifically, a set of salient reference points
+are first selected to be used as explanatory variables of the
+regression models. These reference points are detected
+using our PASM-CTX algorithm. Then, each component
+regression model regresses the location of a model point of
+interest from the detected locations of its explanatory
+variables by fitting a point distribution model (PDM) [
+        <xref ref-type="bibr" rid="ref8">8</xref>
+        ], which
+is built to encode the spatial relationship between the
+dependent and the explanatory variables. In order to
+provide increased flexibility to the shape model and to handle
+the non-robust detection of the regression explanatory
+variables, the models are built with increasing degrees of
+locality based on the increasing number of reference points used.
+The final location of the point is obtained by combining the
+output of all models using non-negative coefficients
+determined from the training set. Note that the set of selected
+salient reference points is automatically selected during the
+training phase and may include points that do not belong
+to the boundaries. We evaluate our method on mouse brain
+gene expression images to segment sagittal sections from
+a mouse brain into 14 anatomical regions. The main
+challenges of this problem are the lack of visible edge cues of
+the regional boundaries and the shape variation of
+anatomical regions across images [
+        <xref ref-type="bibr" rid="ref16">16</xref>
+        ].
+      </p>
+      <p>The contributions of our work are as follows. First, we
+propose a novel method to construct an ensemble of
+multiple regression models to impose shape constraints of
+varying degrees of locality from local-to-global to increase the
+flexibility of the shape model. Our method automatically
+constructs an ensemble of local-to-global PDMs and
+therefore, there is no need to determine the suitable degree of
+locality. Second, we propose a method to learn the
+optimal coefficients for combining regressors in an
+ensemble using linear least squares with non-negative constraints.
+This data-driven approach is generic and can be applied to
+similar problems. Third, our PASM-CTX method to detect
+the reference points is the first work that uses
+similaritybased features instead of a local gray level model to
+detect the local best matches in ASM search. This
+modification makes ASM applicable to gene expression image data
+whose regional boundaries are indistinct. In addition, since
+our method incorporates appearance guidance from only the
+points that are likely to be detected correctly, our method
+does not require any post-processing step to minimize the
+errors in fitting due to unreliable model points.</p>
+      <p>The rest of the paper is organized as follows. In Sec. 2,
+we discuss the related work in literature. In Sec. 3, we
+present our method in detail. In Sec. 4, we evaluate the
+proposed method on 2D biological image segmentation and
+discuss the results. Finally, we conclude our work in Sec. 5.</p>
+    </sec>
+    <sec id="sec-2">
+      <title>2. Related work</title>
+      <p>
+        Many efforts have focused on improving the flexibility
+of the point distribution models. One direction is to allow
+deviations that are not explained in the training data [
+        <xref ref-type="bibr" rid="ref22 ref9">9, 22</xref>
+        ],
+but it can result in an invalid shape. Another direction is to
+partition the shape model into local sub-shapes models and
+fit them individually [
+        <xref ref-type="bibr" rid="ref10 ref11 ref24 ref3 ref31">11, 10, 31, 24, 3</xref>
+        ]. However,
+determining an appropriate partition of the shape model is a
+nontrivial problem. Additionally, the appearance prior in a
+local region may not be strong enough to drive the fitting of a
+sub-shape model to any acceptable solution. Instead of
+partitioning the shapes, few recent methods [
+        <xref ref-type="bibr" rid="ref18 ref2">2, 18</xref>
+        ] fit a global
+shape model for each model point individually using local
+weights. The local weights for each model point control the
+neighborhood size for fitting that point and they are
+computed based on the distances between model points. While
+this approach avoids the partitioning of the shape model,
+determining the neighborhood size that controls the degree
+of locality is nontrivial. Moreover, it is very sensitive to the
+incorrect detection of the neighboring points.
+      </p>
+      <p>
+        One of the most common approaches to account for the
+non-Gaussian errors in the detection of points is to weigh
+each point based on the reconstruction residuals [
+        <xref ref-type="bibr" rid="ref1 ref13 ref27">13, 27, 1</xref>
+        ].
+The performance of these methods degrades rapidly with
+the increase in the number of incorrectly detected points
+and the extent of error in detection. Lekadir et al. [
+        <xref ref-type="bibr" rid="ref21">21</xref>
+        ]
+proposed to identify the outlier points (and correct them) with
+incorrect detection using a local shape dissimilarity
+measure. Similar to other previous methods, this method also
+identifies the detection errors as a post processing step after
+detection of all feature points. This post processing can be
+avoided by explicitly enforcing sparseness condition on the
+residuals [
+        <xref ref-type="bibr" rid="ref30">30</xref>
+        ] but only if the number of non-robust points is
+small. Yan et al. [
+        <xref ref-type="bibr" rid="ref29">29</xref>
+        ] proposed to detect the salient points
+based on prior knowledge about the contrast of the contour
+and reconstruct the full shape from the detection of salient
+points.
+      </p>
+      <p>
+        Our methods are closely related to the work of Amberg et
+al. [
+        <xref ref-type="bibr" rid="ref2">2</xref>
+        ] and of Yan et al. [
+        <xref ref-type="bibr" rid="ref29">29</xref>
+        ]. Similar to [
+        <xref ref-type="bibr" rid="ref2">2</xref>
+        ], PDM-ENLOR
+also locates each model point independently. However,
+instead of using a single global model, our method explicitly
+builds different regression models with different degrees of
+locality for each point to increase their flexibility.
+Moreover, our method automatically determines the suitable
+levels of local shape constraints for each point separately.
+Similar to [
+        <xref ref-type="bibr" rid="ref29">29</xref>
+        ], the PASM-CTX and PDM-ENLOR detect the
+salient points and reconstructs the shape based on the
+guidance of the salient points to account for the large errors in
+detection. However, our methods learn the set of salient
+points from training data in advance and exploits
+information from additional supporting salient points, which may
+not belong to the boundaries. In addition, PDM-ENLOR
+uses salient points selectively in the ensemble of multiple
+models to provide further flexibility at local level. Our work
+and [
+        <xref ref-type="bibr" rid="ref16 ref20">16, 20</xref>
+        ] use data from the same application domain.
+However, our approach explicitly incorporates geometric
+prior in the form of a statistical shape.
+      </p>
+    </sec>
+    <sec id="sec-3">
+      <title>3. Method</title>
+      <sec id="sec-3-1">
+        <title>3.1. Overview</title>
+        <p>In this section, we briefly present our method for fitting
+a shape model to an image. The shape is explicitly
+represented by an ordered set of points. A set of reference
+points, which were selected during training phase based on
+a saliency criteria, are detected using PASM-CTX. Then,
+each point of the boundary shape model is localized
+independently using an ensemble of regression models. Each
+regression model is obtained by fitting a PDM, which is
+specifically built to represent the spatial relationship of the
+model point of interest and a subset of the reference points.
+The final location of the model point is determined as a
+nonnegative linear combination of the candidates proposed by
+the regression models for that point. The non-negative
+coefficients are learned from the training data. Specifically,
+the final location of a model point pi in the shape model of
+interest, is given by:
+pi =
+k
+j=1
+cij fji(Rji ),
+(1)
+where k is the number of regression functions built for pi,
+Rji is a set of reference points used in the function fji to
+infer pi and cij is the ensemble coefficient for the regression
+function fji. Note that, multiple shape models are used in
+our method. The shape model of interest that contains
+sampled points on the boundaries of the object is referred as the
+boundary shape model. When the set of reference points is
+not a subset of the set boundary points, the shape model that
+contains all the boundary points and the reference points is
+called the extended shape model while a shape model that
+contains a subset of points of the extended shape model is
+called the local extended shape model (Fig. 1).</p>
+      </sec>
+      <sec id="sec-3-2">
+        <title>3.2. Reference point selection</title>
+        <p>
+          Only the points that can be reliably detected should be
+used as a reference to guide the inference for the location
+of the model points. The reliable points are likely to have
+high consistency in appearance across images. The
+mutualsaliency concept of two arbitrary points in two images,
+introduced by Ou et al. [
+          <xref ref-type="bibr" rid="ref26">26</xref>
+          ], was modified to
+similaritysaliency concept [
+          <xref ref-type="bibr" rid="ref20">20</xref>
+          ] to evaluate the degree of saliency in
+appearance for the corresponding anatomical point in
+multiple images. We adopt the similarity-saliency to select the
+reference point set. The similarity-saliency score of a point
+u with respect to a reference image T computed for a set of
+training images I = {Ii}in=1 is defined as:
+γ(u, T , I) =
+n
+i=1 γ(u, T , Ii)
+n
+and for a single image I , it is defined as:
+        </p>
+        <p>1
+γ(u, T , I ) = |NC (1u,I)|
+|NP (u,I)|
+v∈NC (u,I) ψ(T (u), I (v))
+v∈NP (u,I) ψ(T (u), I (v))
+where the terms NC and NP denote the core neighborhood
+region (within a small radius around u) and the peripheral
+neighborhood region (an annulus at larger distance from u)
+in image I , and ψ(T (u), I (v)) is the similarity metric
+computed for two image patches (centered at u in image T and
+centered at v in image I ). The similarity-saliency score of
+a salient point should be high (the higher score, the more
+salient) and greater than 1.0 (i.e., the average similarity in
+NC is higher than that in NP ).</p>
+        <p>
+          Let L be the set of points associated with an object in
+an image. The position of each point in L in every training
+image is known (e.g., they are obtained using an
+annotation process). A set of salient points are selected using the
+following steps. First, the similarity-saliency score of each
+point with respect to the reference image T over the set of
+training images I (Eq. 2) is computed. Then, a set of
+reference points whose similarity-saliency score is higher than
+a threshold t are selected. The threshold t is determined by
+using the histogram of the similarity-saliency scores higher
+or equal 1.0. Specifically, the threshold t &gt; 1.0 is selected
+such that it separates the points in the first bin from the
+other points. We use Sturge’s method [
+          <xref ref-type="bibr" rid="ref28">28</xref>
+          ] to estimate the
+(2)
+, (3)
+number of bins for computing histogram of φ samples as:
+1 + 3.3log10(φ). The motivation for removing the first bin
+is to obtain more reliable points. However, the
+similaritysaliency is an unnormalized score (the ratio of two
+similarity scores). Therefore, further investigation is needed to
+determine suitable techniques to determine the threshold for
+selecting the reference points.
+        </p>
+        <p>
+          Mouse brain gene expression images: For mouse brain
+images, L contains all 1,245 vertices of a subdivision mesh,
+a geometric model specifically constructed for mouse brain
+gene expression images by Ju et al. [
+          <xref ref-type="bibr" rid="ref15">15</xref>
+          ], at subdivision
+level 2. The boundary shape model contains all 394
+vertices on the boundaries. For the 10-fold experiments, 183
+to 196 reference points were selected and depicted as solid
+blue circles in Fig. 1. In the mouse brain gene
+expression images, the intensity pattern of each anatomical region
+may vary significantly from image to image as each
+image expresses a different gene. Therefore, a special image
+called Nissl-stained image (NSI), which was constructed
+using a universal gene probe and has maximum similarity
+to other gene expression images, is used as a reference
+image ([
+          <xref ref-type="bibr" rid="ref16 ref20">16, 20</xref>
+          ]).
+        </p>
+      </sec>
+      <sec id="sec-3-3">
+        <title>3.3. Regression model definition</title>
+        <p>In this section, we present how to encode different
+degrees of locality in our ensemble scheme by defining the
+explanatory variables Rji for regressors in Eq.1. The
+locality level j of a regression model fji(Rji ) is based on the
+spatial relationship between pi and the reference points in
+Ri . We assume that the neighboring points provide
+simij
+lar geometric constraints to infer a model point. Therefore,
+we perform density-based clustering of the reference points.
+These clusters of the reference points are then used to
+construct the regression models for inference of the position of
+a target model point.</p>
+        <p>
+          Clustering of the reference points: This step is
+performed during the training phase. The clustering should let
+the neighboring points belong to the same cluster.
+Therefore, in our experiments, we use the algorithm DBSCAN
+[
+          <xref ref-type="bibr" rid="ref12">12</xref>
+          ]. This algorithm has two parameters η (the number of
+neighbors) and (the neighborhood radius). The points that
+have less than η neighbors in their -neighborhood are the
+outliers. To cluster q points in d-dimensional space, we use
+the analytical estimation for the neighborhood radius ([
+          <xref ref-type="bibr" rid="ref5">5</xref>
+          ]):
+= d V
+ηΓ(d/2 + 1)
+q√πd
+,
+(4)
+where V is the volume of the smallest cuboid that contains
+all the points that need to be clustered and Γ is the
+wellknown Gamma function. Because there can be some
+reference points that are isolated from the others and should
+not be merged with their neighbors that are far away, we
+allow the clusters to have size of 1. However, we also want
+to group the points that are dense neighbors to reduce the
+computation cost. Therefore, the clustering is performed in
+two steps. First, we set η = 1 so the clustering requires
+that each cluster has at least two points. Then, the outliers
+from the first step ares clustered again with η = 0 allowing
+1-point clusters. Therefore, every reference point belongs
+to one of the clusters. The output of this step is k − 1
+nonoverlapping clusters Q1, Q2, ..., Qk−1. Figure 2 illustrates
+the clusters obtained by our method.
+        </p>
+      </sec>
+      <sec id="sec-3-4">
+        <title>Construction of the regression models:</title>
+        <p>Let h(i, j) be the index of the cluster that is the jth
+closest to pi (based on the distance from the center of each
+cluster to pi). We build {Rji }jk=1 in a nested-manner (Fig. 3):
+R1i = Qh(i,1); Rki = Rki−1 ∪ Qh(i,k), for k : 2 → (k − 1);
+and Rki = Rki−1. The smaller value of the locality level j of
+the regression model fji corresponds to a more local model.
+Note that, Rki and Rki−1 are the set of all reference points.</p>
+      </sec>
+      <sec id="sec-3-5">
+        <title>3.4. Shape model point regression</title>
+        <p>Given an input image, our method first detects the
+reference points and then infers the position of each model point
+using the constructed regression models. For clarity of
+presentation, first we present how to determine candidate
+locations using a PDM-based regression function assuming that
+the positions of the reference points are already available.
+Later, we present the method to detect the reference points.
+3.4.1</p>
+      </sec>
+      <sec id="sec-3-6">
+        <title>PDM-based model point regression</title>
+        <p>
+          In this section, we present how our method infers the
+position of a model point pi based on reference points in
+Rji using a PDM. In PDMs, each shape is represented as
+the concatenation of coordinates of all the points x =
+[x1, y1, x2, y2, ..., xm, ym]T , where m is the number of
+model points. Given n training shapes, assume that they
+were rigidly aligned using Procrustes analysis [
+          <xref ref-type="bibr" rid="ref14">14</xref>
+          ], denote
+x¯ as the mean shape and Xn×2m as the data matrix where
+each row corresponds to one shape. Principal component
+analysis is applied on the covariance matrix of X to
+transform the aligned shapes into a new space, P, whose axes
+are defined by the eigenvectors that are corresponding to
+the highest eigenvalues. Then, each shape x is represented
+as x = x¯ + Pb, where b is the shape parameter. The fitting
+of the PDM (x¯, P) to a shape x is given by:
+x∗ = argminx ||W[x − (x¯ + Pb)]||22,
+(5)
+where the diagonal weight matrix W2m×2m is
+introduced to emphasize the importance of the model points:
+W(2i − 1, 2i − 1) = W(2i, 2i) is the weight of the ith
+model point. In standard PDM fitting, the weights of all
+model points are uniform. Generally, the shape is
+rigidlyaligned before fitting to remove global transformations by
+using generalized Procrustes [
+          <xref ref-type="bibr" rid="ref14">14</xref>
+          ].
+        </p>
+        <p>For each of the first k − 1 regression models, fji(Rji ),
+(j = 1, ..., k − 1), a PDM (x¯ij , Pij ) is learnt from training
+shapes where each shape contains pi (always being the first
+point of the shape) and all points in Ri . To use a PDM to
+j
+infer the position of an unknown point pi, we reconstruct
+the full shape from the known locations of points in Rji and
+retrieve the point of interest pi. Specifically,
+pi = fji(Rji ) = [aij∗(1), aij∗(2)]T ,
+(6)
+where aij∗ is solution of Eq. 5 when using the model
+(x¯ij , Pij ) and weight matrix Wji with weight equal to 0 for
+pi and weight equal to 1 for the other points.</p>
+        <p>The inference of pi in the first (k − 1) regression models
+employs only the geometric constraints between pi and the
+reference points. To explicitly impose the geometric
+constraints on all the points in the boundary shape model, the
+extended shape model is used for training the PDM for the
+last regressor fki (Rki).
+3.4.2</p>
+      </sec>
+      <sec id="sec-3-7">
+        <title>Reference point detection</title>
+        <p>ASM is a strategy for searching a shape that fits to the image
+evidence in an input image by using a PDM that was learnt
+from the training shapes. In the ASM approach, a shape
+iteratively evolves in two steps: (i) finding a new shape
+estimate (target shape) whose each model point is detected
+as the best match in the local neighborhood of that point
+from the previous iteration, and (ii) fitting the target shape
+by solving Eq. 5. Due to the indistinct anatomical
+boundaries in gene expression images, the local gray level model
+of the traditional ASM formulation is not suitable for the
+detection of the model points. Therefore, we introduce a
+similarity-based feature as a new feature detector for ASM
+to detect the reference points.</p>
+        <p>While we want to detect only the reference points, the
+extended shape model is used to train a PDM for
+maintaining the global shape constraint. Since the extended shape
+model contains context points which are not the points of
+interest, we refer our modified ASM method as PASM-CTX
+(Partial ASM with ConTeXt). At each iteration, we evolve
+the shape based on the guidance of the reference points only
+(i.e., 0 as weight for non-reference points and 1 as weight
+for reference points in the fitting process). At the final
+iteration, we trust the feature detector than the shape model to
+relax the geometric constraint. That means the fitting step
+at the last iteration is omitted and the best matches obtained
+from feature detectors at that iteration are the final estimates
+of the reference points.</p>
+        <p>
+          Initialization: To obtain a robust initialization for the
+specific application, the shape parameters are first
+computed based on the points on the outer boundary of the brain
+(i.e., other model points have zero weights). The reason is
+that the outer boundary in mouse brain can be easily
+obtained quite accurately and it can provide certain
+information about the global shape [
+          <xref ref-type="bibr" rid="ref15 ref17 ref20 ref4">15, 4, 17, 20</xref>
+          ]. Specifically,
+after binarizing the image, the contour of the outer shape is
+traced, followed by sampling the contour to obtain a set C of
+discrete points. At each iteration of ASM search, the target
+of an outer-boundary model point is the point in C closest
+to it.
+        </p>
+        <p>Model point detector for ASM: For each model point,
+a local image patch around that point in the NSI is used as
+the 2D appearance model for detection of the points. The
+reason for using the NSI as a reference for appearance
+comparison has been discussed in Sec. 3.2. At each iteration,
+a local best match of pi is selected from one of the
+neighbors that are sampled from a search window centered at that
+point. The neighboring point whose image patch around it
+in the test image is most similar to the image patch around
+pi in the reference image (NSI) is selected as the best match
+for pi. The similarity between patches is evaluated
+using the similarity function ψ(., .) that was used in Eq. 3.
+A multi-resolution approach for sampling the neighbors is
+employed. The parameters were selected so that at the
+final step, the sampled neighbors include all the pixels in the
+search region.</p>
+      </sec>
+      <sec id="sec-3-8">
+        <title>3.5. Combining the models in ensemble</title>
+        <p>In this section, we provide the motivation for using an
+ensemble of models in Eq. 6 as well as the motivation for
+learning the ensemble weights. Finally, we present our
+method to learn the ensemble weights.</p>
+        <p>Using an ensemble of models: A local model can
+provide improved geometric constraints due to the locality and
+the simplicity of the local shape. However, it can suffer
+from non-robust detection of the local reference points.
+Using a global model in this case can help if the additional
+reference points can be detected more accurately. We
+assume that the true point can be estimated as a non-negative
+linear combination of candidate points.</p>
+        <p>Learning the ensemble weights: Two popular solutions
+to combine the models in ensembles are either to use the
+mean position of the candidates or to use the peak of
+distribution of the candidates. To select an appropriate voting
+rule, prior knowledge of the distribution of the candidates
+is needed. The former solution is preferable if the
+candidates are evenly scattered. The latter solution is preferable if
+the majority of the candidates are close to the true solution.
+However, density estimation is sensitive to parameter
+settings and different model points may need different
+parameter sets. Whereas, learning ensemble weights from data
+is a data-driven solution that can be generalized for similar
+applications. Therefore, we propose to learn the weight
+coefficients from the training data. This approach, however,
+depends on the assumption that the behavior of the multiple
+regression functions for each model point is similar across
+images. An extreme example under this assumption is when
+some points always prefer the global model whereas some
+others always prefer the most local models. Therefore, we
+can use a universal coefficient set for each point in all
+images.</p>
+        <p>Learning the ensemble weights: For each model point
+pi, the coefficient vector ci = [ci1, ci2, ..., cik] is obtained
+by minimizing the error of the final regression results
+computed for pi when compared to the true position over all the
+training images. The matrix Ai contains the coordinates of
+the results obtained from the regression models that infer pi
+in all training images:
+x∗(2,1)</p>
+        <p>i
+y∗(2,1)
+i
+.
+.</p>
+        <p>.
+x∗(2,n)</p>
+        <p>i
+y∗(2,n)
+i
+. . .
+. . .
+. . .
+. . .
+. . .
+. . .
+. . .</p>
+        <p>x∗(k,1) ⎤</p>
+        <p>i
+y∗(k,1)
+i
+. ⎥⎥⎥
+. ⎥⎥
+. ⎥⎥
+xi∗(k,n)⎥⎥
+y∗(k,n)⎦
+i
+where (xi∗(j,l), yi∗(j,l)) is the output of fji on training image
+Il. The vector
+gi = x(g,1), yi(g,1), xi(g,2), yi(g,2), . . . , xi(g,n), yi(g,n) T
+i
+contains the coordinates of the annotation position
+(xi(g,l), yi(g,l)) of pi on training image Il. Then, the
+ensemble coefficient vector for point pi is computed as:
+ci∗ = argmin ||A c − gi||22, s. t. cij ≥ 0</p>
+        <p>i i
+ci
+(7)</p>
+        <p>
+          We solve Eq. 7 by using Lawson and Hanson’s method
+for least squares with non-negative constraints [
+          <xref ref-type="bibr" rid="ref19">19</xref>
+          ].
+        </p>
+      </sec>
+    </sec>
+    <sec id="sec-4">
+      <title>4. Experiments and Results</title>
+      <p>
+        Image data: We evaluated our method on 2D mouse
+brain gene expression images [
+        <xref ref-type="bibr" rid="ref4 ref6">4, 6</xref>
+        ]. The dataset contains
+100 images depicting sagittal sections of postnatal day 7
+mouse brains at standard section 9. Each of the images
+is rigidly-aligned to the template image (NSI). The
+annotated shape and the anatomical point set L were extracted
+from the manually annotated subdivision mesh at
+subdivision level 2 and were provided by [
+        <xref ref-type="bibr" rid="ref15 ref4">15, 4</xref>
+        ].
+      </p>
+      <p>Experimental setup: We performed 10-fold
+crossvalidation. We quantitatively compared the performance
+of the different methods using the Dice similarity
+coefficient (DSC) against the manual annotations for each of the
+14 anatomical regions in the mouse brain. The statistics
+(mean, confidence-interval and statistical test) of the DSCs
+were computed on 100 resulting images from all 10
+experiments. Although different models, built using different
+training data sets, were used to obtain the results, the
+evaluation is fair because we apply the same automatic
+framework (for training/testing) for all the experiments. To test
+if a method A outperforms a method B, we performed a
+non-parametric Wilcoxon Signed-Rank test using the DSC
+values in order to determine whether the relative median
+values are equal (i.e., null hypothesis) or A outperforms B
+(i.e., one sided alternative hypothesis). The Bonferonni
+correction was used to keep the overall significance level equal
+to 0.05. All the tests that reject the null hypothesis in our
+experiments have p-values smaller than 0.0015 &lt; 0.05 . We do
+14
+not include in the text the comparison between two methods
+on a region if none of them outperforms the other.</p>
+      <p>
+        For each PDM, we retained components that contributed
+at least 2% of the total variance. Thus, the number of
+components kept is in range 1-6, depending on the simplicity
+of the local shapes. The patch size to compute the
+similarity function is 41 × 41. The core neighborhood was
+defined within a radius of 7 pixels and the peripheral
+neighborhood annulus was defined by radii of 10 and 15 pixels.
+The sampled contour C, used in the robust initialization part,
+contained 800 points. At each iteration of ASM, we
+sampled 11 × 11 neighbors. The search box size is initialized
+as 61 × 61 and is decreased 10% after each iteration till it
+reaches 11 × 11, after that it is fixed for further iterations.
+We used the normalized mutual information (NMI) [
+        <xref ref-type="bibr" rid="ref23">23</xref>
+        ] as
+the similarity metric. Same parameter settings were used in
+all the experiments in the ASM-based methods (Fig. 4).
+      </p>
+      <sec id="sec-4-1">
+        <title>Comparison with ASM-based approaches: We com</title>
+        <p>
+          pared our proposed PDM-ENLOR with three
+ASMbased methods: ASM-SIM, Amberg-SIM and PASM-CTX.
+ASM-SIM and Amberg-SIM are modified versions of ASM
+and of Amberg et al. [
+          <xref ref-type="bibr" rid="ref2">2</xref>
+          ], respectively. Both methods were
+applied to the boundary shape model and used
+similaritybased feature for detecting local best matches in ASM
+search. Global fitting with uniform weights was used for
+ASM-SIM whereas local fitting [
+          <xref ref-type="bibr" rid="ref2">2</xref>
+          ] was used for
+AmbergSIM. In PASM-CTX, partial ASM was used for the
+extended shape model. Thus, the reference points detected
+in Sec. 3.4.2 are obtained before global fitting step at the
+last iteration of PASM-CTX.
+        </p>
+        <p>For Amberg-SIM, we ran multiple experiments with
+different values for parameter σ, which controls the locality
+degree of the fitting, and reported the best results (Fig. 4).
+Smaller value for σ corresponds to more local fitting. We
+observed that the performance of the method decreases as
+the values for σ become smaller. That can be explained by
+the non-robust detections of large number of model points
+due to the complex appearance of gene expression images.
+In the reported experiment, we set σ equal to the largest
+distance between any two points in the shape (σ ≈ 800 in
+the context that the image size is 600 × 1000) so that, each
+point has an influence on the local fitting of all other points.
+The fitting with such high value of σ is similar to the global
+model fitting. Thus, neither of Amberg-SIM and ASM-SIM
+outperforms the other in any of 14 regions.</p>
+        <p>The use of appearance guidance from only the reliable
+points helps PASM-CTX outperform ASM-SIM in nine
+regions (6-14) and outperform Amberg-SIM in eight regions
+(6-8, 10-14). Those regions have either mostly unreliable
+regional boundary points or many reliable interior points.</p>
+        <p>The improved results of PDM-ENLOR over
+PASMCTX on all 14 regions indicate that the proposed
+ensemble scheme improves the flexibility of the models.
+PDMENLOR also outperforms ASM-SIM and Amberg-SIM in
+14 regions. The improvement is more pronounced in the
+regions 6, 10, 12-14.</p>
+      </sec>
+      <sec id="sec-4-2">
+        <title>Comparison with previous works on the application:</title>
+        <p>
+          We also compared our method PDM-ENLOR with two
+state-of-the-art works on mouse brain gene expression
+image data of Kurkure et al. [
+          <xref ref-type="bibr" rid="ref16">16</xref>
+          ], which uses landmark-based
+registration, and Le et al. [
+          <xref ref-type="bibr" rid="ref20">20</xref>
+          ], which uses discrete Markov
+Random Fields to fit the subdivision mesh that models the
+shape. Our method outperforms [
+          <xref ref-type="bibr" rid="ref20">20</xref>
+          ] in all 14 regions and
+outperforms [
+          <xref ref-type="bibr" rid="ref16">16</xref>
+          ] in seven regions (2, 3, 8, 9, 11-13) which
+lack appearance cues. The improvement of our method is
+credited to the ability to incorporate shape prior as well as
+the appearance prior in a unified framework.
+        </p>
+      </sec>
+    </sec>
+    <sec id="sec-5">
+      <title>5. Conclusions</title>
+      <p>In this paper, we have presented a new approach to
+improve the model flexibility and to handle the detection errors
+for statistical shape fitting problem towards image
+segmentation. We proposed to locate each model point
+individually using an ensemble of PDM-based regression models
+which were constructed with increasing degree of locality
+to provide more flexibility. We presented automated
+methods to construct the local-to-global PDMs and to build an
+ensemble by combining their output linearly using learned
+coefficients. Thus, the appropriate degree of locality is
+determined automatically from the training data. A set of
+selected salient reference points is used to construct the
+models to minimize the errors in fitting due to unreliable model
+points. Therefore, there is no need to perform any
+postprocessing. We demonstrated that the use of appearance
+cues from selected model points can significantly improve
+the fitting results. Furthermore, our method outperforms the
+state-of-the-art methods on a challenging problem of
+multiregion segmentation of the mouse brain gene expression
+images.</p>
+    </sec>
+    <sec id="sec-6">
+      <title>Acknowledgments</title>
+      <p>This work was supported in part by the University of
+Houston (UH) Hugh Roy and Lillie Cranz Cullen
+Endowment Fund. All statements of fact, opinion, or conclusions
+contained herein are those of the authors and should not be
+construed as representing the official views or policies of
+UH.</p>
+    </sec>
+  </body>
+  <back>
+    <ref-list>
+      <ref id="ref1">
+        <mixed-citation>
+          [1]
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Abi-Nahed</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.-P.</given-names>
+            <surname>Jolly</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>G.-Z.</given-names>
+            <surname>Yang</surname>
+          </string-name>
+          .
+          <article-title>Robust active shape models: A robust, generic and simple automatic segmentation tool</article-title>
+          . In
+          <source>Proc. 9th International Conference on Medical Image Computing and Computer-Assisted Intervention - Volume Part II</source>
+          , pages
+          <fpage>1</fpage>
+          -
+          <lpage>8</lpage>
+          , Copenhagen, Denmark, Oct. 1-6 2006. 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref2">
+        <mixed-citation>
+          [2]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Amberg</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Lüthi</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Vetter</surname>
+          </string-name>
+          .
+          <article-title>Local regression based statistical model fitting</article-title>
+          . In
+          <source>Proc. 32nd DAGM Conference on Pattern Recognition</source>
+          , pages
+          <fpage>452</fpage>
+          -
+          <lpage>461</lpage>
+          , Darmstadt, Germany, Sep.
+          <fpage>22</fpage>
+          -
+          <lpage>24</lpage>
+          2010. 1, 2,
+          <fpage>6</fpage>
+        </mixed-citation>
+      </ref>
+      <ref id="ref3">
+        <mixed-citation>
+          [3]
+          <string-name>
+            <given-names>Y.</given-names>
+            <surname>Appia</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>B.</given-names>
+            <surname>Ganapathy</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Yezzi</surname>
+          </string-name>
+          .
+          <article-title>Localized principal component analysis based curve evolution: A divide and conquer approach</article-title>
+          . In
+          <source>Proc. 13th International Conference on Computer Vision</source>
+          , pages
+          <fpage>1981</fpage>
+          -
+          <lpage>1986</lpage>
+          , Barcelona, Spain, Nov. 6-13
+          <year>2011</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref4">
+        <mixed-citation>
+          [4]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Bello</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J. P.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Warren</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>W.</given-names>
+            <surname>Chiu</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>I. A.</given-names>
+            <surname>Kakadiaris</surname>
+          </string-name>
+          .
+          <article-title>Learning-based segmentation framework for tissue images containing gene expression data</article-title>
+          .
+          <source>IEEE Trans. Med. Imag</source>
+          .,
+          <volume>26</volume>
+          :
+          <fpage>728</fpage>
+          -
+          <lpage>744</lpage>
+          ,
+          <year>2007</year>
+          . 5, 6
+        </mixed-citation>
+      </ref>
+      <ref id="ref5">
+        <mixed-citation>
+          [5]
+          <string-name>
+            <given-names>S.</given-names>
+            <surname>Brecheisen</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>H.</given-names>
+            <surname>Kriegel</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>P.</given-names>
+            <surname>Kro</surname>
+          </string-name>
+          ˝ger,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Pfeifle</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Schubert</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Zimek</surname>
+          </string-name>
+          .
+          <article-title>Density-based data analysis and similarity search</article-title>
+          . In V. A. Petrushin and L. Khan, editors,
+          <source>Multimedia Data Mining and Knowledge Discovery</source>
+          , pages
+          <fpage>94</fpage>
+          -
+          <lpage>115</lpage>
+          . Springer,
+          <year>2007</year>
+          . 4
+        </mixed-citation>
+      </ref>
+      <ref id="ref6">
+        <mixed-citation>
+          [6]
+          <string-name>
+            <given-names>J. P.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Bello</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Thaller</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Warren</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>I. A.</given-names>
+            <surname>Kakadiaris</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>W.</given-names>
+            <surname>Chiu</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>G.</given-names>
+            <surname>Eichele</surname>
+          </string-name>
+          .
+          <article-title>Automated pipeline for atlas-based annotation of gene expression patterns: Application to postnatal day 7 mouse brain</article-title>
+          .
+          <source>Methods</source>
+          ,
+          <volume>50</volume>
+          :
+          <fpage>85</fpage>
+          -
+          <lpage>95</lpage>
+          , Aug.
+          <year>2010</year>
+          . 6
+        </mixed-citation>
+      </ref>
+      <ref id="ref7">
+        <mixed-citation>
+          [7]
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Cootes</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Taylor</surname>
+          </string-name>
+          .
+          <article-title>Active shape models: smart snakes</article-title>
+          . In
+          <source>Proc. British Machine Vision Conference</source>
+          , pages
+          <fpage>266</fpage>
+          -
+          <lpage>275</lpage>
+          , Leeds, UK, Sep.
+          <fpage>22</fpage>
+          -
+          <lpage>24</lpage>
+          1992. 1
+        </mixed-citation>
+      </ref>
+      <ref id="ref8">
+        <mixed-citation>
+          [8]
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Cootes</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Taylor</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>D.</given-names>
+            <surname>Cooper</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Graham</surname>
+          </string-name>
+          .
+          <article-title>Active shape models-their training and application</article-title>
+          .
+          <source>Computer Vision and Image Understanding</source>
+          ,
+          <volume>61</volume>
+          (
+          <issue>1</issue>
+          ):
+          <fpage>38</fpage>
+          -
+          <lpage>59</lpage>
+          , Jan.
+          <year>1995</year>
+          . 1
+        </mixed-citation>
+      </ref>
+      <ref id="ref9">
+        <mixed-citation>
+          [9]
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Cootes</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>C. J.</given-names>
+            <surname>Taylor</surname>
+          </string-name>
+          .
+          <article-title>Combining point distribution models with shape models based on finite element analysis</article-title>
+          .
+          <source>Image and Vision Computing</source>
+          ,
+          <volume>13</volume>
+          (
+          <issue>5</issue>
+          ):
+          <fpage>419</fpage>
+          -
+          <lpage>428</lpage>
+          ,
+          <year>1995</year>
+          . 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref10">
+        <mixed-citation>
+          [10]
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Davatzikos</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>X.</given-names>
+            <surname>Tao</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>D.</given-names>
+            <surname>Shen</surname>
+          </string-name>
+          .
+          <article-title>Hierarchical active shape models, using the wavelet transform</article-title>
+          .
+          <source>IEEE Trans. Med. Imag</source>
+          .,
+          <volume>22</volume>
+          (
+          <issue>3</issue>
+          ):
+          <fpage>414</fpage>
+          -
+          <lpage>423</lpage>
+          ,
+          <year>2003</year>
+          . 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref11">
+        <mixed-citation>
+          [11]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>de Bruijne</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>B.</given-names>
+            <surname>Ginneken</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Viergever</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>W.</given-names>
+            <surname>Niessen</surname>
+          </string-name>
+          .
+          <article-title>Adapting active shape models for 3D segmentation of tubular structures in medical images</article-title>
+          . In
+          <source>Proc. 18th Information Processing in Medical Imaging</source>
+          , pages
+          <fpage>136</fpage>
+          -
+          <lpage>147</lpage>
+          , Ambleside, United Kingdom, Jul.
+          <fpage>20</fpage>
+          -
+          <lpage>25</lpage>
+          2003. 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref12">
+        <mixed-citation>
+          [12]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Ester</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>H. P.</given-names>
+            <surname>Kriegel</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Sander</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>X.</given-names>
+            <surname>Xu</surname>
+          </string-name>
+          .
+          <article-title>A densitybased algorithm for discovering clusters in large spatial databases with noise</article-title>
+          . In E. Simoudis, J. Han, and U. Fayyad, editors,
+          <source>Proc. 2nd International Conference on Knowledge Discovery and Data Mining</source>
+          , pages
+          <fpage>226</fpage>
+          -
+          <lpage>231</lpage>
+          , Portland, Oregon, Aug. 2-4
+          <year>1996</year>
+          . 4
+        </mixed-citation>
+      </ref>
+      <ref id="ref13">
+        <mixed-citation>
+          [13]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Fischler</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>R.</given-names>
+            <surname>Bolles</surname>
+          </string-name>
+          .
+          <article-title>Random sample consensus: A paradigm for model fitting with applications to image analysis and automated cartography</article-title>
+          .
+          <source>Communications of the Association for Computing Machinery</source>
+          ,
+          <volume>24</volume>
+          (
+          <issue>6</issue>
+          ):
+          <fpage>381</fpage>
+          -
+          <lpage>395</lpage>
+          ,
+          <year>1981</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref14">
+        <mixed-citation>
+          [14]
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Goodall</surname>
+          </string-name>
+          .
+          <article-title>Procrustes methods in the statistical analysis of shape</article-title>
+          .
+          <source>Journal of the Royal Statistical Society</source>
+          ,
+          <volume>53</volume>
+          (
+          <issue>2</issue>
+          ):
+          <fpage>285</fpage>
+          -
+          <lpage>339</lpage>
+          ,
+          <year>1991</year>
+          . 4
+        </mixed-citation>
+      </ref>
+      <ref id="ref15">
+        <mixed-citation>
+          [15]
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Warren</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>G.</given-names>
+            <surname>Eichele</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Thaller</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>W.</given-names>
+            <surname>Chiu</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          .
+          <article-title>A geometric database for gene expression data</article-title>
+          . In
+          <source>Proc. Eurographics Symposium on Geometry Processing</source>
+          , pages
+          <fpage>166</fpage>
+          -
+          <lpage>176</lpage>
+          , Aachen, Germany, Jun.
+          <fpage>22</fpage>
+          -
+          <lpage>25</lpage>
+          2003. 3, 5,
+          <fpage>6</fpage>
+        </mixed-citation>
+      </ref>
+      <ref id="ref16">
+        <mixed-citation>
+          [16]
+          <string-name>
+            <given-names>U.</given-names>
+            <surname>Kurkure</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>Y. H.</given-names>
+            <surname>Le</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>N.</given-names>
+            <surname>Paragios</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J. P.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>I. A.</given-names>
+            <surname>Kakadiaris</surname>
+          </string-name>
+          .
+          <article-title>Landmark/image-based deformable registration of gene expression data</article-title>
+          . In
+          <source>Proc. Computer Vision and Pattern Recognition Conference</source>
+          , pages
+          <fpage>1089</fpage>
+          -
+          <lpage>1096</lpage>
+          , Colorado Springs, CO, Jun.
+          <fpage>21</fpage>
+          -
+          <lpage>23</lpage>
+          2011. 1, 2,
+          <issue>3</issue>
+          ,
+          <fpage>7</fpage>
+        </mixed-citation>
+      </ref>
+      <ref id="ref17">
+        <mixed-citation>
+          [17]
+          <string-name>
+            <given-names>U.</given-names>
+            <surname>Kurkure</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>Y. H.</given-names>
+            <surname>Le</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>N.</given-names>
+            <surname>Paragios</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J. P.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>I. A.</given-names>
+            <surname>Kakadiaris</surname>
+          </string-name>
+          .
+          <article-title>Markov random field-based fitting of a subdivision-based geometric atlas</article-title>
+          . In
+          <source>Proc. International Conference on Computer Vision</source>
+          , pages
+          <fpage>2540</fpage>
+          -
+          <lpage>2547</lpage>
+          , Barcelona, Spain, Nov. 6-13
+          <year>2011</year>
+          . 5
+        </mixed-citation>
+      </ref>
+      <ref id="ref18">
+        <mixed-citation>
+          [18]
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Last</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>S.</given-names>
+            <surname>Winkelbach</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>F.</given-names>
+            <surname>Wahl</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>K.</given-names>
+            <surname>Eichhorn</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>F.</given-names>
+            <surname>Bootz</surname>
+          </string-name>
+          .
+          <article-title>A locally deformable statistical shape model</article-title>
+          .
+          <source>Machine Learning in Medical Imaging</source>
+          ,
+          <volume>7009</volume>
+          :
+          <fpage>51</fpage>
+          -
+          <lpage>58</lpage>
+          ,
+          <year>2011</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref19">
+        <mixed-citation>
+          [19]
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Lawson</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>R.</given-names>
+            <surname>Hanson</surname>
+          </string-name>
+          .
+          <article-title>Solving Least-Squares Problems</article-title>
+          . Prentice-Hall,
+          <year>1974</year>
+          . 6
+        </mixed-citation>
+      </ref>
+      <ref id="ref20">
+        <mixed-citation>
+          [20]
+          <string-name>
+            <given-names>Y.</given-names>
+            <surname>Le</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>U.</given-names>
+            <surname>Kurkure</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>N.</given-names>
+            <surname>Paragios</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>T.</given-names>
+            <surname>Ju</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Carson</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>I.</given-names>
+            <surname>Kakadiaris</surname>
+          </string-name>
+          .
+          <article-title>Similarity-based appearance prior for fitting a subdivision mesh in gene expression images</article-title>
+          . In
+          <source>Proc. 15th International Conference on Medical Image Computing and Computer Assisted Intervention</source>
+          , pages
+          <fpage>577</fpage>
+          -
+          <lpage>584</lpage>
+          , Nice, France, Oct. 1-5
+          <year>2012</year>
+          . 2, 3,
+          <issue>5</issue>
+          ,
+          <fpage>7</fpage>
+        </mixed-citation>
+      </ref>
+      <ref id="ref21">
+        <mixed-citation>
+          [21]
+          <string-name>
+            <given-names>K.</given-names>
+            <surname>Lekadir</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>R. D.</given-names>
+            <surname>Merrifield</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>G.-Z.</given-names>
+            <surname>Yang</surname>
+          </string-name>
+          .
+          <article-title>Outlier detection and handling for robust 3D active shape models search</article-title>
+          .
+          <source>IEEE Trans. Med. Imag</source>
+          .,
+          <volume>26</volume>
+          (
+          <issue>2</issue>
+          ):
+          <fpage>212</fpage>
+          -
+          <lpage>222</lpage>
+          ,
+          <year>2007</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref22">
+        <mixed-citation>
+          [22]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Loog</surname>
+          </string-name>
+          .
+          <article-title>Localized maximum entropy shape modelling</article-title>
+          . In
+          <source>Proc. 20th International Conference on Information Processing in Medical Imaging</source>
+          , pages
+          <fpage>619</fpage>
+          -
+          <lpage>629</lpage>
+          , Kerkrade, The Netherlands, Jul. 2-6
+          <year>2007</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref23">
+        <mixed-citation>
+          [23]
+          <string-name>
+            <given-names>F.</given-names>
+            <surname>Maes</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Collignon</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>D.</given-names>
+            <surname>Vandermeulen</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>G.</given-names>
+            <surname>Marchal</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>P.</given-names>
+            <surname>Suetens</surname>
+          </string-name>
+          .
+          <article-title>Multimodality image registration by maximization of mutual information</article-title>
+          .
+          <source>IEEE Trans. Med. Imag</source>
+          .,
+          <volume>16</volume>
+          (
+          <issue>2</issue>
+          ):
+          <fpage>187</fpage>
+          -
+          <lpage>198</lpage>
+          , Apr.
+          <year>1997</year>
+          . 6
+        </mixed-citation>
+      </ref>
+      <ref id="ref24">
+        <mixed-citation>
+          [24]
+          <string-name>
+            <given-names>D.</given-names>
+            <surname>Nain</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>S.</given-names>
+            <surname>Haker</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Bobick</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Tannenbaum</surname>
+          </string-name>
+          .
+          <article-title>Multiscale 3D shape representation and segmentation using spherical wavelets</article-title>
+          .
+          <source>IEEE Trans. Med. Imag</source>
+          .,
+          <volume>26</volume>
+          (
+          <issue>4</issue>
+          ):
+          <fpage>598</fpage>
+          -
+          <lpage>618</lpage>
+          , Apr.
+          <year>2007</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref25">
+        <mixed-citation>
+          [25]
+          <string-name>
+            <given-names>P.</given-names>
+            <surname>Nair</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>A.</given-names>
+            <surname>Cavallaro</surname>
+          </string-name>
+          .
+          <article-title>3D face detection, landmark localization, and registration using a point distribution model</article-title>
+          .
+          <source>IEEE Trans. Multimedia</source>
+          ,
+          <volume>11</volume>
+          (
+          <issue>4</issue>
+          ):
+          <fpage>611</fpage>
+          -
+          <lpage>623</lpage>
+          ,
+          <year>2009</year>
+          . 1
+        </mixed-citation>
+      </ref>
+      <ref id="ref26">
+        <mixed-citation>
+          [26]
+          <string-name>
+            <given-names>Y.</given-names>
+            <surname>Ou</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>C.</given-names>
+            <surname>Davatzikos</surname>
+          </string-name>
+          .
+          <article-title>DRAMMS: Deformable registration via attribute matching and mutual-saliency weighting</article-title>
+          . In
+          <source>Proc. 21st International Conference on Information Processing in Medical Imaging</source>
+          , pages
+          <fpage>50</fpage>
+          -
+          <lpage>62</lpage>
+          , Williamsburg, VA, Jul. 5-10
+          <year>2009</year>
+          . 3
+        </mixed-citation>
+      </ref>
+      <ref id="ref27">
+        <mixed-citation>
+          [27]
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Rogers</surname>
+          </string-name>
+          and
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Graham</surname>
+          </string-name>
+          .
+          <article-title>Robust active shape model search</article-title>
+          . In
+          <source>Proc. European Conference on Computer Vision</source>
+          , pages
+          <fpage>517</fpage>
+          -
+          <lpage>530</lpage>
+          , London, UK, May
+          <fpage>27</fpage>
+          -
+          <lpage>31</lpage>
+          2002. 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref28">
+        <mixed-citation>
+          [28]
+          <string-name>
+            <given-names>H. A.</given-names>
+            <surname>Sturges</surname>
+          </string-name>
+          .
+          <article-title>The choice of a class interval</article-title>
+          .
+          <source>Journal of the American Statistical Association</source>
+          ,
+          <volume>21</volume>
+          (
+          <issue>153</issue>
+          ):
+          <fpage>65</fpage>
+          -
+          <lpage>66</lpage>
+          ,
+          <year>1926</year>
+          . 3
+        </mixed-citation>
+      </ref>
+      <ref id="ref29">
+        <mixed-citation>
+          [29]
+          <string-name>
+            <given-names>P.</given-names>
+            <surname>Yan</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>S.</given-names>
+            <surname>Xu</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>B.</given-names>
+            <surname>Turkbey</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Kruecker</surname>
+          </string-name>
+          .
+          <article-title>Discrete deformable model guided by partial active shape model for trus image segmentation</article-title>
+          .
+          <source>IEEE Trans. Biomed. Eng</source>
+          .,
+          <volume>57</volume>
+          (
+          <issue>5</issue>
+          ):
+          <fpage>1158</fpage>
+          -
+          <lpage>1166</lpage>
+          ,
+          <year>2010</year>
+          . 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref30">
+        <mixed-citation>
+          [30]
+          <string-name>
+            <given-names>S.</given-names>
+            <surname>Zhang</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>Y.</given-names>
+            <surname>Zhan</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>M.</given-names>
+            <surname>Dewan</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>J.</given-names>
+            <surname>Huang</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>D. N.</given-names>
+            <surname>Metaxas</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>X. S.</given-names>
+            <surname>Zhou</surname>
+          </string-name>
+          .
+          <article-title>Towards robust and effective shape modeling: sparse shape composition</article-title>
+          .
+          <source>Medical Image Analysis</source>
+          ,
+          <volume>16</volume>
+          (
+          <issue>1</issue>
+          ):
+          <fpage>265</fpage>
+          -
+          <lpage>277</lpage>
+          ,
+          <year>2012</year>
+          . 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref31">
+        <mixed-citation>
+          [31]
+          <string-name>
+            <given-names>Z.</given-names>
+            <surname>Zhao</surname>
+          </string-name>
+          ,
+          <string-name>
+            <given-names>S. R.</given-names>
+            <surname>Aylward</surname>
+          </string-name>
+          , and
+          <string-name>
+            <given-names>E. K.</given-names>
+            <surname>Teoh</surname>
+          </string-name>
+          .
+          <article-title>A novel 3d partitioned active shape model for segmentation of brain mr images</article-title>
+          . In
+          <source>Proc. 8th International Conference on Medical Image Computing and Computer Assisted Intervention</source>
+          , pages
+          <fpage>221</fpage>
+          -
+          <lpage>228</lpage>
+          , Palm Springs, CA, Oct.
+          <fpage>26</fpage>
+          -
+          <lpage>30</lpage>
+          2005. 1, 2
+        </mixed-citation>
+      </ref>
+      <ref id="ref32">
+        <mixed-citation>
+          [32]
+          <string-name>
+            <given-names>D.</given-names>
+            <surname>Zhou</surname>
+          </string-name>
+          ,
+          <string-name>
+            <surname>D.</surname>
+          </string-name>
+          Petrovska-Delacretaz, and
+          <string-name>
+            <given-names>B.</given-names>
+            <surname>Dorizzi</surname>
+          </string-name>
+          .
+          <article-title>Automatic landmark location with a combined active shape model</article-title>
+          . In
+          <source>Proc. 3rd International Conference on Biometrics: Theory, Applications</source>
+          , and Systems,
+          <year>2009</year>
+          ., pages
+          <fpage>1</fpage>
+          -
+          <lpage>7</lpage>
+          , Washington, DC, Sept.
+          <fpage>28</fpage>
+          -
+          <lpage>30</lpage>
+          2009. 1
+        </mixed-citation>
+      </ref>
+    </ref-list>
+  </back>
+</article>

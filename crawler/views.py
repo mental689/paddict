@@ -160,11 +160,9 @@ class ReadingView(TemplateView):
         if paper is None: 
             return redirect('/crawler/?event=')
         tags = request.POST.getlist('taggles[]')
-        with open('{}/static/stopwords.txt'.format(BASE_DIR)) as f:
-            stopwords = [s.strip() for s in f.readlines()]
         for tag in tags:
-            tagger = Tag.objects.filter(text=tag).first()
-            if tagger is None and re.sub('[^0-9a-zA-Z]+','',tag).lower()  not in stopwords:
+            tagger = Tag.objects.filter(text=re.sub('[^0-9a-zA-Z]+','',tag).lower()).first()
+            if tagger is None and re.sub('[^0-9a-zA-Z]+','',tag).lower()  not in STOPWORDS:
                 tagger = Tag(text=re.sub('[^0-9a-zA-Z]+','',tag).lower())
                 tagger.save()
             assignment = TagAssignment.objects.filter(doc=paper, tag=tagger).first()
