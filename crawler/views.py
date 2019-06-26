@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from papers.settings import BASE_DIR
 from crawler.models import *
+from crawler.graph import *
 # Create your views here.
 from django.http import HttpResponse
 from django.views.generic import TemplateView
@@ -34,19 +35,42 @@ class IndexView(TemplateView):
         name = request.GET.get('event', None)
         events = Event.objects.filter(shortname__contains=name).all()
         ctx = super().get_context_data(**kwargs)
+        ctx['events'] = events
         ctx['authors'] = Author.objects.filter(document__event__in=events).all().distinct()
         ctx['papers'] = Document.objects.filter(event__in=events).all()
-        ctx['centred'] = Document.objects.filter(centred=True, event__in=events).all()
         titles =[p.title for p in ctx['papers']]
         titles = '\n'.join(titles)
         tokens = nltk.word_tokenize(titles)
         words = [w.lower() for w in tokens if w.lower() not in STOPWORDS and len(w) > 1]
         ctx['words'] = count_words(words)
         # Query Neo4J to search for leargest connected components in the coauthorship network
-        query = "CALL algo.unionFind.stream('MATCH (p:AuthorNode) WHERE p.author_id IN [{}] RETURN id(p) as id', 'MATCH (p1:AuthorNode)-[f:COAUTHOR]->(p2:AuthorNode) RETURN id(p1) as source, id(p2) as target, f.num_papers as weight', ".format(','.join([str(a.id) for a in ctx['authors']]))
-        query += "{graph:'cypher'}) YIELD nodeId, setId RETURN setId,count(nodeId) as size_of_component ORDER BY size_of_component DESC LIMIT 20;"
+        # The following query returns the whole papers and authors in each components.
+        query = "CALL algo.unionFind.stream('MATCH (d) WHERE CASE WHEN \"AuthorNode\" in LABELS(d) THEN d.author_id IN [{}] ELSE d.document_id IN [{}] END RETURN id(d) as id', 'MATCH (d:DocumentNode)-[]-(a:AuthorNode) RETURN id(d) as source, id(a) as target UNION MATCH (a1:AuthorNode)-[]-(a2:AuthorNone) RETURN id(a1) as source, id(a2) as target', ".format(','.join([str(a.id) for a in ctx['authors']]), ','.join([str(d.id) for d in ctx['papers']]))
+        query += "{graph:'cypher'}) YIELD nodeId, setId RETURN setId, collect(nodeId), count(*) as size_of_component ORDER BY size_of_component DESC;"
         results, meta = neomodel.db.cypher_query(query)
-        ctx['max_cc'] = results[0][1]
+        ctx['max_cc_authors'] = 0
+        ctx['max_cc_papers'] = 0
+        authors_idx = [an.id for an in AuthorNode.nodes.all()]
+        papers_idx = [dn.document_id for dn in DocumentNode.nodes.all()]
+        for id in results[0][1]:
+            if id in authors_idx:
+                ctx['max_cc_authors'] += 1
+            else:
+                ctx['max_cc_papers'] += 1
+        # Number of connected components (groups of separated authors and papers):
+        ctx['cc'] = len(results)
+        ctx['cc_max'] = results[0][2]
+        ctx['centred'] = Document.objects.filter(id__in=papers_idx, event__in=events).all()
+        triplets, _ = build_collaboration_graph(ctx['papers'], ctx['authors'])
+        ctx['edges'] = []
+        nodes = []
+        for id1, id2, w in triplets:
+            nodes.append(id1)
+            nodes.append(id2)
+            ctx['edges'].append({
+                'id1': id1, 'id2': id2, 'w': w
+                })
+        ctx['nodes'] = list(set(nodes))
         return self.render_to_response(ctx)
 
 

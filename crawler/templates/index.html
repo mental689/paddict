@@ -42,20 +42,24 @@
 	<style>
 		.more {display: none;}
 		.pdfobject-container { height: 50rem; border: 0rem solid rgba(0,0,0,.1); }
+		#cy {
+        		width: 100%;
+        		height: 500px;
+        		position: relative;
+			background-color: #f9f9f9;
+    		}
 	</style>
 	{% block css %}
 	{% endblock %}
 	{{ form.media }}
-	<script type="text/javascript" src="{% static "tiny_mce/tiny_mce.js" %}"></script>
 	<script src="https://www.WebRTC-Experiment.com/RecordRTC.js"></script>
 	<!-- Visualizing graph -->
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.7.3/cytoscape.min.js"></script>
+	<script src="https://unpkg.com/klayjs@0.4.1/klay.js"></script>
+	<script src="https://cytoscape.org/cytoscape.js-klay/cytoscape-klay.js"></script>
 </head>
 <body>
 	<div class="wrapper">
-		<!--
-			Tip 1: You can change the background color of the main header using: data-background-color="blue | purple | light-blue | green | orange | red"
-		-->
 		{% include 'header.html' %}
 		<!-- Sidebar -->
 	  	{% include 'sidebar.html' %}	
@@ -70,6 +74,27 @@
 									<div class="row align-items-center">
 										<div class="col-icon">
 											<div class="icon-big text-center icon-primary bubble-shadow-small">
+												<i class="far fa-calendar-check"></i>						
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+												<p class="card-category">Event</p>
+												<h4 class="card-title">{% for event in events %}{{ event.shortname }} {%endfor%}</h4>
+												<p class="card-category">Papers</p>
+												<h4 class="card-title">{{ papers|length }}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body ">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-info bubble-shadow-small">
 												<i class="fas fa-users"></i>
 											</div>
 										</div>
@@ -77,8 +102,29 @@
 											<div class="numbers">
 												<p class="card-category">Unique authors</p>
 												<h4 class="card-title">{{ authors|length }}</h4>
-												<p class="card-category">Authors in largest CC</p>
-												<h4 class="card-title">{{ max_cc }}</h4>
+												<p class="card-category">Largest community</p>
+												<h4 class="card-title">{{ max_cc_authors }}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-success bubble-shadow-small">
+												<i class="far fa-newspaper"></i>
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+												<p class="card-category">Papers</p>
+												<h4 class="card-title">{{ papers|length }}</h4>
+												<p class="card-category">Largest community</p>
+												<h4 class="card-title">{{ max_cc_papers }}</h4>
 											</div>
 										</div>
 									</div>
@@ -91,15 +137,15 @@
 									<div class="row align-items-center">
 										<div class="col-icon">
 											<div class="icon-big text-center icon-secondary bubble-shadow-small">
-												<i class="far fa-check-circle"></i>
+												<i class="far fa-comments"></i>
 											</div>
 										</div>
 										<div class="col col-stats ml-3 ml-sm-0">
 											<div class="numbers">
-												<p class="card-category">Papers</p>
-												<h4 class="card-title">{{ papers|length }}</h4>
-												<p class="card-category">Papers in largest CC</p>
-												<h4 class="card-title">{{ centred|length }}</h4>
+												<p class="card-category">Communities</p>
+												<h4 class="card-title"> {{cc}}</h4>
+												<p class="card-category">Largest community</p>
+												<h4 class="card-title">{{ cc_max }}</h4>
 											</div>
 										</div>
 									</div>
@@ -114,28 +160,11 @@
 									<div class="card-head-row">
 										<div class="card-title">Coauthorships</div>
 										<div class="card-tools">
-											<!--<a href="#" class="btn btn-info btn-border btn-round btn-sm mr-2">
-												<span class="btn-label">
-													<i class="fa fa-pencil"></i>
-												</span>
-												Export
-											</a>
-											<a href="#" class="btn btn-info btn-border btn-round btn-sm">
-												<span class="btn-label">
-													<i class="fa fa-print"></i>
-												</span>
-												Print
-											</a>-->
 										</div>
 									</div>
 								</div>
 								<div class="card-body">
-									<div class="chart-container" style="min-height: 375px">
-										<!--<canvas id="statisticsChart"></canvas>-->
-										<!--iframe width="500" height="500" frameborder="0" scrolling="no" src="//plot.ly/~marxen68/6.embed"></iframe-->
-										<img src="{% static 'img/coau.png' %}" width="100%"/>
-									</div>
-									<div id="myChartLegend"></div>
+									<div id="cy"></div>	
 								</div>
 							</div>
 						</div>
@@ -145,18 +174,6 @@
 									<div class="card-head-row">
 										<div class="card-title">Topics</div>
 										<div class="card-tools">
-											<!--<a href="#" class="btn btn-info btn-border btn-round btn-sm mr-2">
-												<span class="btn-label">
-													<i class="fa fa-pencil"></i>
-												</span>
-												Export
-											</a>
-											<a href="#" class="btn btn-info btn-border btn-round btn-sm">
-												<span class="btn-label">
-													<i class="fa fa-print"></i>
-												</span>
-												Print
-											</a>-->
 										</div>
 									</div>
 								</div>
@@ -222,38 +239,6 @@
 				{% endblock %}
 			</div>			
 		</div>
-		
-		<!-- Custom template | don't include it in your project! 
-		<div class="custom-template">
-			<div class="title">Settings</div>
-			<div class="custom-content">
-				<div class="switcher">
-					<div class="switch-block">
-						<h4>Topbar</h4>
-						<div class="btnSwitch">
-							<button type="button" class="changeMainHeaderColor" data-color="blue"></button>
-							<button type="button" class="selected changeMainHeaderColor" data-color="purple"></button>
-							<button type="button" class="changeMainHeaderColor" data-color="light-blue"></button>
-							<button type="button" class="changeMainHeaderColor" data-color="green"></button>
-							<button type="button" class="changeMainHeaderColor" data-color="orange"></button>
-							<button type="button" class="changeMainHeaderColor" data-color="red"></button>
-						</div>
-					</div>
-					<div class="switch-block">
-						<h4>Background</h4>
-						<div class="btnSwitch">
-							<button type="button" class="changeBackgroundColor" data-color="bg2"></button>
-							<button type="button" class="changeBackgroundColor selected" data-color="bg1"></button>
-							<button type="button" class="changeBackgroundColor" data-color="bg3"></button>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="custom-toggle">
-				<i class="flaticon-settings"></i>
-			</div>
-		</div>-->
-		<!-- End Custom template -->
 	</div>
 </div>
 <!--   Core JS Files   -->
@@ -403,15 +388,117 @@
     				moreText.style.display = "inline";
   			}
 		}
-		tinyMCE.init({
-    			mode: "textareas",
-    			theme: "advanced",
-    			plugins: "spellchecker,directionality,paste,searchreplace",
-    			language: "{{ language }}",
-    			directionality: "{{ directionality }}",
-    			spellchecker_languages : "{{ spellchecker_languages }}",
-    			spellchecker_rpc_url : "{{ spellchecker_rpc_url }}"
-		});
+		var cy = cytoscape({
+        		container: document.getElementById('cy'),
+        		elements: [
+				{% for n in nodes %}
+					{ data: { id: '{{n}}' } },
+				{% endfor %}
+				{% for e in edges %}
+          				{
+            					data: {
+							id: '{{e.id1}}-{{e.id2}}',
+							source: '{{e.id1}}',
+							target: '{{e.id2}}'
+            					}
+					},
+				{% endfor %}
+          		],
+        		style: [
+        			{
+            				selector: 'node',
+            				style: {
+                				shape: 'circle',
+                				'background-color': 'purple',
+                				label: 'data(id)'
+            				}
+        			}]
+      		});
+	// Select layout algorithm. There are not so much options in Cytoscape, COSE is one of the best (fast and not so bad results).
+     	let options = {
+  		name: 'cose',
+
+  		// Called on `layoutready`
+  		ready: function(){},
+
+  		// Called on `layoutstop`
+  		stop: function(){},
+
+  		// Whether to animate while running the layout
+  		// true : Animate continuously as the layout is running
+  		// false : Just show the end result
+  		// 'end' : Animate with the end result, from the initial positions to the end positions
+  		animate: true,
+
+  		// Easing of the animation for animate:'end'
+  		animationEasing: undefined,
+
+  		// The duration of the animation for animate:'end'
+  		animationDuration: undefined,
+
+  		// A function that determines whether the node should be animated
+  		// All nodes animated by default on animate enabled
+  		// Non-animated nodes are positioned immediately when the layout starts
+  		animateFilter: function ( node, i ){ return true; },
+
+
+  		// The layout animates only after this many milliseconds for animate:true
+  		// (prevents flashing on fast runs)
+  		animationThreshold: 250,
+
+  		// Number of iterations between consecutive screen positions update
+  		refresh: 20,
+
+  		// Whether to fit the network view after when done
+  		fit: true,
+
+  		// Padding on fit
+  		padding: 30,
+
+  		// Constrain layout bounds; { x1, y1, x2, y2 } or { x1, y1, w, h }
+  		boundingBox: undefined,
+
+  		// Excludes the label when calculating node bounding boxes for the layout algorithm
+  		nodeDimensionsIncludeLabels: false,
+
+  		// Randomize the initial positions of the nodes (true) or use existing positions (false)
+  		randomize: false,
+
+  		// Extra spacing between components in non-compound graphs
+  		componentSpacing: 40,
+
+  		// Node repulsion (non overlapping) multiplier
+  		nodeRepulsion: function( node ){ return 2048; },
+
+  		// Node repulsion (overlapping) multiplier
+  		nodeOverlap: 4,
+
+  		// Ideal edge (non nested) length
+  		idealEdgeLength: function( edge ){ return 32; },
+
+  		// Divisor to compute edge forces
+  		edgeElasticity: function( edge ){ return 32; },
+
+  		// Nesting factor (multiplier) to compute ideal edge length for nested edges
+  		nestingFactor: 1.2,
+
+  		// Gravity force (constant)
+  		gravity: 1,
+
+  		// Maximum number of iterations to perform
+  		numIter: 1000,
+
+  		// Initial temperature (maximum node displacement)
+  		initialTemp: 1000,
+
+  		// Cooling factor (how the temperature is reduced between consecutive iterations
+  		coolingFactor: 0.99,
+
+  		// Lower temperature threshold (below this point the layout will end)
+  		minTemp: 1.0
+	};
+
+	cy.layout( options );	
 	</script>
 {% endblock %}
 </body>
