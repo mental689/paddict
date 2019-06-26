@@ -4,11 +4,12 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 
 ### Features
 
-* **Statistical overview dashboard** including visualizations of authors graph (their collaborations wth interactive tools thanks to [plot.ly](https://plot.ly), word cloud of keywords extracted from paper titles, statistics of participants and papers, etc.
+* **Statistical overview dashboard** including visualizations of authors graph (their collaborations wth interactive tools thanks to [CytoScape](http://js.cytoscape.org), word cloud of keywords extracted from paper titles, statistics of participants and papers, etc.
 
 * **Interactive reader** which utilises a PDF reader to help faster reading and summarizing paper in only once view.
 
-* **Relational database** to manage author-paper relationships and author-author relationships.
+* **Graph and relational databases** to manage author-paper relationships and author-author relationships.
+We use SQL and [Neo4J](https://neo4j.com/docs/cypher-manual/current/) for this purpose.
 
 ### TODO
 
