@@ -6,6 +6,7 @@ import os, re
 import django
 django.setup()
 from papers.settings import BASE_DIR
+import xml.etree.ElementTree as ET
 
 
 def get_stopwords():
@@ -25,4 +26,10 @@ def extract_keywords_from_pdf(pdf_file):
     words = [re.sub('[^0-9a-zA-Z]+','',w).lower() for w in words]
     words = [w for w in words if len(w) > 2]
     return words
+
+
+def parse_cermine_output(cermine_file):
+    tree = ET.parse(cermine_file)
+    root = tree.getroot()
+    
 

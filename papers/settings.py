@@ -37,10 +37,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django_neomodel',
-    'crawler',
-    'rest_framework',
-    'django_filters',
+    'django_neomodel', # for graph data
+    'haystack', # for indexer
+    'crawler', 
+    'rest_framework', # for REST API
+    'django_filters', # for advanced filtering
+    'tinymce', # for WYSIWYG editor
 ]
 
 MIDDLEWARE = [
@@ -137,8 +139,19 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 2
 }
 
+# Neo4J
 NEOMODEL_NEO4J_BOLT_URL = 'bolt://neo4j:paddict@localhost:7687'
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
 NEOMODEL_ENCRYPTED_CONNECTION = True
 NEOMODEL_MAX_POOL_SIZE = 50
+
+# Solr 8.1.1
+HAYSTACK_CONNECTIONS = {
+    'default': {
+        'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
+        'URL': 'http://127.0.0.1:9200/',                
+        'INDEX_NAME': 'paddict',
+        },
+}
+HAYSTACK_SIGNAL_PROCESSOR = 'haystack.signals.RealtimeSignalProcessor'

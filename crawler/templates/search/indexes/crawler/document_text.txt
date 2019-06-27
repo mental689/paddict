@@ -1,0 +1,6 @@
+{{ object.title }}
+    {% for a in authors%}
+        {{ a }}
+    {% endfor %}
+{{ object.words }}
+{{ object.preprocessed }}

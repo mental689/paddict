@@ -1,0 +1,100 @@
+{% extends 'index.html' %}
+
+{% block content %}
+       <div class="page-inner">
+	       <form method="get" action=".">
+		<div class="row">
+			<div class="col-md-12">
+				<div class="card">
+					<div class="card-header"> 
+						<div class="card-head-row">
+							<div class="card-title">Search</div>
+							<div class="card-tools">
+								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
+									<li class="nav-item submenu">
+								<input type="submit" value="Search" class="nav-link active show">
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+						<div class="form-group">
+						            {{ form }}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	       </form>
+		<div class="row">
+			<div class="col-md-12">
+				<div class="card">
+					{% if query %}
+					<div class="card-header"> 
+						<div class="card-head-row">
+														<div class="card-title">Results</div>
+						</div>
+					</div>
+					{% endif %}
+					<div class="card-body">
+							{% if query %}
+							<div class="table-responsive">
+										<table id="results" class="display table table-striped table-hover" >
+											<thead>
+												<tr>
+													<th>Title</th>
+													<th>Event</th>
+												</tr>
+											</thead>
+											<tfoot>
+												<tr>
+													<th>Title</th>
+													<th>Event</th>
+												</tr>
+											</tfoot>
+											<tbody>
+												{% for result in page.object_list %}
+												<tr>
+													<td>
+														<h4 class="card-title"><a href="/crawler/reader?id={{ result.object.id }}" target="_blank">{{ result.object.title }}</a></h4>
+															<span id="dots-{{result.object.id}}"></span>
+															<span id="more-{{result.object.id}}" class="more">
+															<p>{{ result.object.abstract }}</p></span>
+														<button onclick="myFunction({{result.object.id}});" id="abs{{result.object.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
+
+													</td>
+													<td>{{result.object.event}}</td>
+												</tr>
+												{% empty %}
+												<p>No results found.</p>
+												{% endfor %}
+											</tbody>
+										</table>
+
+										
+							</div>
+							{% else %}
+							<p>Please enter a keyword in the textbox above.</p>
+							{% endif %}
+					</div>
+				</div>
+			</div>
+		</div>
+		{% if page.has_previous or page.has_next %}
+		<div class="row">
+			<div class="col-sm-12 col-md-5">
+				<div class="dataTables_info" id="basic-datatables_info" role="status" aria-live="polite">Showing 1 to 10 of 285 entries</div>
+			</div>
+			<div class="col-sm-12 col-md-7">
+				{% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}" class="btn-info btn-border btn-round btn-sm mr-2">Previous</a>{% endif %}
+				{% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}" class="btn-info btn-border btn-round btn-sm mr-2">Next</a>{% endif %}
+			</div>
+		</div>
+		{% endif %}
+       </div>
+	<script>
+		$("#id_q").addClass('form-control');
+		$("[id^=id_models_]").addClass('form-check-input');
+	</script>
+{% endblock %}

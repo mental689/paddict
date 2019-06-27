@@ -40,6 +40,9 @@ These document-level labels are noisy, to be cautious!
 	* __Webcam__: to capture the reading profile. Unlike other activities such as driving, which need part information like hand signals (driving is done by hands and fingers), reading is completely done by eyes. Therefore, we focus on monitoring the face information only.
 	* [__Blinking__](https://en.wikipedia.org/wiki/Blinking): readers who are likely to fall asleep during reading papers often have __abnormal__ blinking. We choose this as our analysis target.
 
+
+* Added pattern matching by [Elasticsearch](https://www.elastic.co/products/elasticsearch).
+
 ### Acknowledgement
 
 About CVF papers, a mention from  the [source](http://openaccess.thecvf.com/CVPR2019.py):
@@ -60,3 +63,6 @@ This material is presented to ensure timely dissemination of scholarly and techn
 
 ![Dashboard](./static/img/dashboard.png)
 
+
+#### Search
+![Search](./static/img/search.png)

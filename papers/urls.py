@@ -24,4 +24,5 @@ urlpatterns = [
         url(r'^api/', include(router.urls)),
         path('admin/', admin.site.urls),
         url(r'^tinymce/', include('tinymce.urls')),
+        url(r'^search/', include('haystack.urls')),
 ]

@@ -1,3 +1,6 @@
+*.images
+*.*xml
+*.bib
 *.swp
 *.pdf
 # Byte-compiled / optimized / DLL files
