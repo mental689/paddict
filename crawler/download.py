@@ -8,6 +8,36 @@ import bibtexparser
 from tqdm import tqdm
 import PyPDF2
 import nltk, string
+import xml.etree.ElementTree as ET
+import urllib, os
+import arxiv
+import urllib.parse as urlparse  
+from django.core.validators import URLValidator
+from django.core.exceptions import ValidationError
+
+
+### Redis
+from crawler import tasks
+ 
+
+def validate_website_url(website):
+    """Validate website into valid URL"""
+    msg = "Cannot validate this website: %s" % website
+    validate = URLValidator(message=msg)
+    try:
+        validate(website)
+    except:
+        o = urlparse.urlparse(website)
+        if o.path:
+            path = o.path
+            while path.endswith('/'):
+                path = path[:-1]
+            path = "http://"+path
+            validate(path)
+            return path
+        else:
+            raise ValidationError(message=msg)
+    return website 
 
 
 def get_html(url):
@@ -24,6 +54,14 @@ def download(url, output):
     f = open(output, "wb")
     f.write(r.data)
     f.close()
+
+
+def download_arxiv(url, output):
+    papers = arxiv.query(id_list=[url.split('/')[-1]])
+    paper =papers[0] if len(papers) > 0 else None
+    if paper is None: return None
+    arxiv.download(paper, slugify=lambda x: output)
+    return paper
 
 
 def parse_html(html):
@@ -105,6 +143,13 @@ class CVFDownloader(Downloader):
                 if doc is None:
                     doc = Document(title=ent['title'], pdf_link=pdf_link, event=self.event)
                     doc.save()
+                try:
+                    dn = DocumentNode.nodes.filter(document_id=doc.id).first()
+                except:
+                    dn = None
+                if dn is None:
+                    dn = DocumentNode(document_id=doc.id)
+                    dn.save()
                 authors = ent['author'].split(' and ')
                 for aut in authors:
                     a = Author.objects.filter(name=aut).first()
@@ -114,6 +159,15 @@ class CVFDownloader(Downloader):
                     if a not in doc.authors.all():
                         doc.authors.add(a)
                     doc.save()
+                    try:
+                        an = AuthorNode.nodes.filter(author_id=a.id).first()
+                    except:
+                        an = None
+                    if an is None:
+                        an = AuthorNode(author_id=a.id)
+                        an.save()
+                    dn.authors.connect(an)
+
                 if pdf_link != "":
                     try:
                         a, p, s = crawl_cvpr_page(url="http://openaccess.thecvf.com/"+pdf_link)
@@ -126,8 +180,8 @@ class CVFDownloader(Downloader):
 def convert_name(a):
     if ',' not in a:
         lastname = a.split(' ')[-1]
-        firstname = a.replace(lastname, '')
-        return '{}, {}'.format(firstname, lastname)
+        firstname = a.replace(lastname, '').strip()
+        return '{}, {}'.format(lastname, firstname)
     return a
 
 class NIPSDownloader(Downloader):
@@ -167,6 +221,13 @@ class NIPSDownloader(Downloader):
             if doc is None:
                 doc = Document(title=title, pdf_link=nips_link, event=self.event)
                 doc.save()
+            try:
+                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
+            except:
+                dn = None
+            if dn is None:
+                dn = DocumentNode(document_id=doc.id)
+                dn.save()
             # Crawl the profile page of the paper
             try:
                 p, bl, b, authors = self.get_paper_links(url=nips_link)
@@ -183,6 +244,14 @@ class NIPSDownloader(Downloader):
                 if author not in doc.authors.all():
                     doc.authors.add(author)
                     doc.save()
+                try:
+                    an = AuthorNode.nodes.filter(author_id=a.id).first()
+                except:
+                    an = None
+                if an is None:
+                    an = AuthorNode(author_id=a.id)
+                    an.save()
+                dn.authors.connect(an)
         f.close()
 
     def get_abstract(self, url):
@@ -195,6 +264,82 @@ class NIPSDownloader(Downloader):
             abstract = abstracts[0].text
         return abstract
 
+
+class DLBPDownloader(Downloader):
+    def __init_(self, *args, **kwargs):
+        super(DLBPDownloader, self).__init(*args, **kwargs)
+
+    def download(self, output="iclr2013.xml", download_pdf=True):
+        xml_data = urllib.request.urlopen(self.event_url).read()
+        open(output, 'wb').write(xml_data)
+        root = ET.fromstring(xml_data)
+        objs = []
+        for hit in tqdm(root.iter('hit')):
+            authors = []
+            title = ""
+            for a in hit.iter('author'):
+                authors.append(convert_name(a.text))
+            if len(authors) < 1:
+                continue
+            for t in hit.iter('title'):
+                title =t.text
+            if len(title) < 5:
+                continue
+            not_download = False
+            for t in hit.iter('type'):
+                if t.text in ['Editorship']:
+                    not_download = True
+                    break
+            if not_download: continue
+            ee = ""
+            for t in hit.iter('ee'):
+                ee = t.text
+            try:
+                ee = validate_website_url(ee)
+            except:
+                ee = None
+            # DB
+            doc = Document.objects.filter(title__iexact=title).first()
+            if doc is None:
+                doc = Document(title=title, event=self.event)
+                doc.save()
+            doc.event = self.event
+            doc.save()
+            # Update Neo4J
+            try:
+                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
+            except:
+                dn = None
+            if dn is None:
+                dn = DocumentNode(document_id=doc.id)
+                dn.save()
+            for author in authors:
+                a = Author.objects.filter(name__iexact=author).first()
+                if a is None:
+                    a = Author(name=author)
+                    a.save()
+                if a not in doc.authors.all():
+                    doc.authors.add(a)
+                    doc.save()
+                try:
+                    an = AuthorNode.nodes.filter(author_id=a.id).first()
+                except:
+                    an = None
+                if an is None:
+                    an = AuthorNode(author_id=a.id)
+                    an.save()
+                dn.authors.connect(an)
+            #if os.path.exists('static/paper{}'.format(doc.id)): continue
+            obj = {
+                "title": title,
+                "authors": authors,
+                "url": ee
+                }
+            if download_pdf:
+                res = tasks.download_arxiv.apply_async((ee, 'static/paper{}'.format(doc.id), doc.id))
+                obj['redis_id'] = res.id
+            objs.append(obj)
+        return objs
 
 if __name__ == '__main__':
     event = Event.objects.filter(shortname="CVPR 2019").first()

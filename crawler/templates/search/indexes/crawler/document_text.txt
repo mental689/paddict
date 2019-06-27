@@ -2,5 +2,7 @@
     {% for a in authors%}
         {{ a }}
     {% endfor %}
+{{ object.abstract }}
+{[ object.notes }}
 {{ object.words }}
 {{ object.preprocessed }}
