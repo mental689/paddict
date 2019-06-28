@@ -1,3 +1,8 @@
+# static files
+static/admin
+static/tiny_mce
+static/django_tinymce
+static/rest_framework
 crawler/migrations/*
 !crawler/migrations/__init__.py
 db/

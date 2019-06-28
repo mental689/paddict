@@ -8,19 +8,24 @@ services: # An example. You can modify such as defining more than one node for e
         volumes:
             - ./:/src
             - ./static/nginx:/etc/nginx/conf.d
+            - ./static:/static
         depends_on:
             - web
 
     db: # MySQL
-        image: mysql:5.7
-        command: --default-authentication-plugin=mysql_native_password
+        image: mariadb:5.5
+        command: --bind-address=0.0.0.0
         container_name: paddict_db
         environment:
-            MYSQL_ROOT_PASSWORD: 'paddict' # change to your settings
-            MYSQL_DATABASE: 'paddict'
-            MYSQL_ROOT_USER: 'root'
+            - MYSQL_HOST=localhost
+            - MYSQL_PORT=3306  # cannot change this port to other number
+            - MYSQL_ROOT_HOST=%
+            - MYSQL_DATABASE=paddict
+            - MYSQL_ROOT_PASSWORD=paddict
         ports:
             - "33061:3306"
+        volumes:
+            - ./db/mariadb:/var/lib/mysql
 
     neo4j: # Graph data indexing
         image: neo4j:3.0
@@ -84,10 +89,11 @@ services: # An example. You can modify such as defining more than one node for e
             - es02
         volumes:
             - ./:/src
+            - ./static:/static
         container_name: paddict_main
         expose:
             - "8000"
-        command: bash -c "/etc/init.d/mysql start && python manage.py makemigrations && python manage.py migrate && gunicorn mydjango.wsgi -b 0.0.0.0:8000"
+        command: bash -c "/etc/init.d/mysql start && python manage.py collectstatic --noinput && python manage.py makemigrations && python manage.py migrate && gunicorn papers.wsgi -b 0.0.0.0:8000"
 
 volumes:
     esdata01:

@@ -25,7 +25,7 @@ SECRET_KEY = 'z48lc$zfer9fi*r4&bivmcf&-!+url617$rkt84tv=i-%o-9y1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['web']
 
 
 # Application definition
@@ -84,9 +84,16 @@ DATABASES = {
 #        'ENGINE': 'django.db.backends.sqlite3',
 #        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
         'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'paddict',
+        'USER': 'root',
+        'HOST': 'db',
+        'PORT': '3306',
+        'PASSWORD': 'paddict',
+        'default-character-set': 'utf8',
         'OPTIONS': {
-            'read_default_file': os.path.join(BASE_DIR, 'static/my.cnf'),
-        },
+            'sql_mode': 'traditional',
+
+        }
     }
 }
 
@@ -129,12 +136,11 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+STATIC_ROOT= '/static'
 
-#STATIC_ROOT = os.path.join(BASE_DIR, 'static')
-
-STATICFILES_DIRS = (
-    os.path.join(BASE_DIR, "static"),
-)
+#STATICFILES_DIRS = (
+#    os.path.join(BASE_DIR, "static"),
+#)
 
 # RESTAPI
 REST_FRAMEWORK = {

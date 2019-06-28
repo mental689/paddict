@@ -40,9 +40,9 @@ class Author(models.Model):
 
 
 class Document(models.Model):
-    title = models.CharField(max_length=4096)
-    pdf_link = models.CharField(max_length=4096)
-    abstract = models.CharField(max_length=20000, blank=True, null=True)
+    title = models.TextField(default="")
+    pdf_link = models.TextField(default="")
+    abstract = models.TextField(blank=True, null=True)
     authors = models.ManyToManyField(Author)
     words = models.TextField(default="")
     notes = HTMLField(default="")
@@ -53,10 +53,6 @@ class Document(models.Model):
 
     class Meta:
         ordering = ('title',)
-        indexes = [
-                models.Index(fields=['title'], name='title'),
-                ]
-        unique_together = ['title']
 
     def __str__(self):
         return self.title
