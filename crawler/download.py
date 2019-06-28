@@ -69,6 +69,28 @@ def parse_html(html):
     return soup
 
 
+def download_openreview(url, output):
+    soup = parse_html(get_html(url))
+    # find abstract
+    divs = soup.find_all('li')
+    found = False
+    abstract = ""
+    for div in divs:
+        spans = div.find_all('strong', attrs={'class': 'note-content-field'})
+        for span in spans:
+            if "abstract" in span.text.lower():
+                found = True
+                break
+        if found:
+            spans = div.find_all('span', attrs={'class': 'note-content-value'})
+            for span in spans:
+                abstract = span.text
+            break
+    url2 = url.replace('forum', 'pdf')
+    download(url2, output)
+    return abstract
+
+
 def crawl_cvpr_page(url):
     soup = parse_html(get_html(url))
     # find abstract
@@ -336,10 +358,100 @@ class DLBPDownloader(Downloader):
                 "url": ee
                 }
             if download_pdf:
-                res = tasks.download_arxiv.apply_async((ee, 'static/paper{}'.format(doc.id), doc.id))
+                if 'arxiv' in ee:
+                    res = tasks.download_arxiv.apply_async((ee, 'static/paper{}'.format(doc.id), doc.id))
+                else:
+                    res = tasks.download_openreview.apply_async((ee, 'static/paper{}.pdf'.format(doc.id), doc.id))
                 obj['redis_id'] = res.id
             objs.append(obj)
         return objs
+
+
+class MLRDownloader(Downloader):
+    def __init__(self, *args, **kwargs):
+        super(MLRDownloader, self).__init__(*args, **kwargs)
+
+    def parse_paper(self, html):
+        title = ""
+        authors = []
+        abs_link = ""
+        pdf_link = ""
+        for p in html.find_all('p', attrs={'class': 'title'}):
+            title = p.text
+        for p in html.find_all('p', attrs={'class': 'details'}):
+            for span in p.find_all('span', attrs={'class': 'authors'}):
+                authors = span.text.split(',')
+        for p in html.find_all('p', attrs={'class': 'links'}):
+            for a in p.find_all('a'):
+                if a.text == 'abs':
+                    abs_link = a.attrs['href']
+                elif a.text == 'Download PDF':
+                    pdf_link = a.attrs['href']
+        return title, authors, abs_link, pdf_link
+
+    def get_abstract(self, abs_link):
+        soup = parse_html(get_html(abs_link))
+        abstract = ""
+        bibtext = ""
+        for elem in soup.find_all('div', attrs={'id': 'abstract', 'class': 'abstract'}):
+            abstract = elem.text
+        for elem in soup.find_all('code', attrs={'id': 'bibtex'}):
+            bibtex = elem.text
+        return abstract, bibtex
+
+    def download(self, output):
+        soup =parse_html(get_html(self.event_url))
+        htmls = soup.find_all('div', attrs={'class': 'paper'})
+        f = open(output, 'w')
+        for html in tqdm(htmls):
+            try:
+                title, authors, abs_link, pdf_link = self.parse_paper(html)
+                abstract, bibtex = self.get_abstract(abs_link)
+            except Exception as e:
+                print(e)
+                continue
+            f.write(bibtex+'\n')
+            doc = Document.objects.filter(title__iexact=title, event=self.event).first()
+            if doc is None:
+                doc = Document(title=title, event=self.event, abstract=abstract, pdf_link=pdf_link)
+                try:
+                    doc.save()
+                except Exception as e:
+                    print(e)
+                    print(title)
+                    continue
+            try:
+                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
+            except:
+                dn = None
+            if dn is None:
+                dn = DocumentNode(document_id=doc.id)
+                dn.save()
+            for author in authors:
+                name = convert_name(author)
+                a = Author.objects.filter(name__iexact=name).first()
+                if a is None:
+                    a = Author(name=name)
+                    try:
+                        a.save()
+                    except Exception as e:
+                        print(e)
+                        print(author)
+                        continue
+                if a not in doc.authors.all():
+                    doc.authors.add(a)
+                    doc.save()
+                try:
+                    an = AuthorNode.nodes.filter(author_id=a.id).first()
+                except:
+                    an = None
+                if an is None:
+                    an = AuthorNode(author_id=a.id)
+                    an.save()
+                dn.authors.connect(an)
+        f.close()
+
+
 
 if __name__ == '__main__':
     event = Event.objects.filter(shortname="CVPR 2019").first()
