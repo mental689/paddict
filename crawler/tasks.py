@@ -20,4 +20,16 @@ def download_arxiv(url, output, id):
                 doc.abstract = paper['summary']
             doc.save()
     return paper
-    
+
+
+@app.task
+def download_openreview(url, output, id):
+    try:
+        abstract = download.download_openreview(url, output)
+    except Exception as e:
+        return None
+    doc = Document.objects.filter(id=id).first()
+    if doc is not None:
+        doc.abstract = abstract
+        doc.save()
+    return abstract   
