@@ -1,4 +1,4 @@
-import PyPDF2 # PyPDF2 extracts texts from PDF markup. We found that it worked relatively poor with CVPR papers. Spaces between words are often omitted in the outputs.
+#import PyPDF2 # PyPDF2 extracts texts from PDF markup. We found that it worked relatively poor with CVPR papers. Spaces between words are often omitted in the outputs.
 import textract # textract uses external OCR command "tesseract" to extract texts. The workflow is to first convert pdf files to ppm images and then apply OCR to extract texts.
 from nltk.tokenize import word_tokenize
 
@@ -31,5 +31,5 @@ def extract_keywords_from_pdf(pdf_file):
 def parse_cermine_output(cermine_file):
     tree = ET.parse(cermine_file)
     root = tree.getroot()
-    
+
 

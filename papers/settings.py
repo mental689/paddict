@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_neomodel', # for graph data
     'haystack', # for indexer
-    'crawler', 
+    'crawler',
     'rest_framework', # for REST API
     'django_filters', # for advanced filtering
     'tinymce', # for WYSIWYG editor
@@ -81,8 +81,12 @@ WSGI_APPLICATION = 'papers.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#        'ENGINE': 'django.db.backends.sqlite3',
+#        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'OPTIONS': {
+            'read_default_file': os.path.join(BASE_DIR, 'static/my.cnf'),
+        },
     }
 }
 
@@ -150,7 +154,7 @@ NEOMODEL_MAX_POOL_SIZE = 50
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
-        'URL': 'http://127.0.0.1:9200/',                
+        'URL': 'http://127.0.0.1:9200/',
         'INDEX_NAME': 'paddict',
         },
 }

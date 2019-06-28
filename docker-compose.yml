@@ -1,0 +1,100 @@
+version: "3"
+services: # An example. You can modify such as defining more than one node for each type below.
+    nginx: # webserver
+        image: nginx:1.17
+        container_name: paddict_nginx
+        ports:
+            - "8000:8000"
+        volumes:
+            - ./:/src
+            - ./static/nginx:/etc/nginx/conf.d
+        depends_on:
+            - web
+
+    db: # MySQL
+        image: mysql:5.7
+        command: --default-authentication-plugin=mysql_native_password
+        container_name: paddict_db
+        environment:
+            MYSQL_ROOT_PASSWORD: 'paddict' # change to your settings
+            MYSQL_DATABASE: 'paddict'
+            MYSQL_ROOT_USER: 'root'
+        ports:
+            - "33061:3306"
+
+    neo4j: # Graph data indexing
+        image: neo4j:3.0
+        container_name: paddict_neo4j
+        ports:
+            - "7474:7474"
+        volumes:
+            - ./db/neo4j:/data/dbms
+
+    redis: # key-value DB for async tasks
+        image: redis:5.0.5
+        container_name: paddict_redis
+    
+    es01:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        container_name: es01
+        environment:
+            - node.name=es01
+            - discovery.seed_hosts=es02
+            - cluster.initial_master_nodes=es01,es02
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - esdata01:/usr/share/elasticsearch/data
+        ports:
+            - 9200:9200
+        networks:
+            - esnet
+  
+    es02:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        container_name: es02
+        environment:
+            - node.name=es02
+            - discovery.seed_hosts=es01
+            - cluster.initial_master_nodes=es01,es02
+            - cluster.name=docker-cluster
+            - bootstrap.memory_lock=true
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+        ulimits:
+            memlock:
+                soft: -1
+                hard: -1
+        volumes:
+            - esdata02:/usr/share/elasticsearch/data
+        networks:
+            - esnet
+    web: 
+        image: openjdk:8
+        build: .
+        depends_on:
+            - db
+            - neo4j
+            - redis
+            - es01
+            - es02
+        volumes:
+            - ./:/src
+        container_name: paddict_main
+        expose:
+            - "8000"
+        command: bash -c "/etc/init.d/mysql start && python manage.py makemigrations && python manage.py migrate && gunicorn mydjango.wsgi -b 0.0.0.0:8000"
+
+volumes:
+    esdata01:
+        driver: local
+    esdata02:
+        driver: local
+
+networks:
+    esnet:
+        driver: bridge

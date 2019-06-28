@@ -1,0 +1,15 @@
+django>=2.1.0
+django-tinymce>=2.6.1
+djangorestframework>=3.9.4
+django-filter>=1.0.1
+django-neomodel>=0.0.4
+django-haystack>=2.6.0
+elasticsearch==2.4.1
+celery>=4.3.0
+nltk>=3.4.3
+textract
+gunicorn==19.6.0
+mysqlclient
+networkx
+metaphone
+tqdm

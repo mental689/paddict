@@ -5,8 +5,10 @@ from django_neomodel import DjangoNode
 
 # Create your models here.
 class Event(models.Model):
-    name = models.CharField(max_length=2048, default='The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)')
-    shortname =models.CharField(max_length=50, default='CVPR')
+    name = models.CharField(max_length=255, default='The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)')
+    shortname = models.CharField(max_length=50, default='CVPR')
+    url = models.CharField(max_length=255)
+    time = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -60,37 +62,12 @@ class Document(models.Model):
         return self.title
 
 
-class Supp(models.Model):
-    doc = models.ForeignKey(Document, on_delete=models.CASCADE)
-    pdf_link = models.CharField(max_length=4096)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.doc.title + ' - Supp'
-
-    class Meta:
-        ordering = ('pdf_link',)
-
-
-class PDFFile(models.Model):
-    doc = models.ForeignKey(Document, on_delete=models.CASCADE)
-    pdf_link = models.CharField(max_length=4096, default='')
-    cvf_link = models.CharField(max_length=4096, default='')
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.doc.title + ' - Supp'
-
-
-
 class Tag(models.Model):
     """
     Document-level labels which are provided from users.
     These labels can be noisy.
     """
-    text = models.CharField(max_length=512)
+    text = models.CharField(max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
