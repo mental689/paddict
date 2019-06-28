@@ -1,3 +1,6 @@
+crawler/migrations/*
+!crawler/migrations/__init__.py
+db/
 *.images
 *.*xml
 *.bib
