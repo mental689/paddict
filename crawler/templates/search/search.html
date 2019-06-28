@@ -1,4 +1,5 @@
 {% extends 'index.html' %}
+{% load highlight %}
 
 {% block content %}
        <div class="page-inner">
@@ -57,10 +58,10 @@
 												{% for result in page.object_list %}
 												<tr>
 													<td>
-														<h4 class="card-title"><a href="/crawler/reader?id={{ result.object.id }}" target="_blank">{{ result.object.title }}</a></h4>
+														<h4 class="card-title"><a href="/crawler/reader?id={{ result.object.id }}" target="_blank">{% highlight result.object.title with query %}</a></h4>
 															<span id="dots-{{result.object.id}}"></span>
 															<span id="more-{{result.object.id}}" class="more">
-															<p>{{ result.object.abstract }}</p></span>
+															<p>{% highlight result.object.abstract with query %}</p></span>
 														<button onclick="myFunction({{result.object.id}});" id="abs{{result.object.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 
 													</td>
