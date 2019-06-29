@@ -7,7 +7,7 @@ services: # An example. You can modify such as defining more than one node for e
             - "8000:8000"
         volumes:
             - ./:/src
-            - ./static/nginx:/etc/nginx/conf.d
+            - ./config/nginx:/etc/nginx/conf.d
             - ./static:/static
         depends_on:
             - web

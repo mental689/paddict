@@ -1,15 +1,26 @@
+# Django stuffs
 django>=2.1.0
 django-tinymce>=2.6.1
 djangorestframework>=3.9.4
 django-filter>=1.0.1
 django-neomodel>=0.0.4
 django-haystack>=2.6.0
+gunicorn==19.6.0
+
+# Indexers & DB
 elasticsearch==2.4.1
 celery>=4.3.0
+mysqlclient
+
+# Language processing & OCR
 nltk>=3.4.3
 textract
-gunicorn==19.6.0
-mysqlclient
-networkx
-metaphone
+
+# For name parsing
+metaphone # matching two given names based on DoubleMetaPhone algorithm
+nameparser # a very simplistic rule-based Western style name parser. It does not allow re-training name parsing models. But it may be enough for some cases: https://nameparser.readthedocs.io/en/latest/
+probablepeople # Using CRF to parse human names. One of  the advantages of this advanced parser is that it allows re-training with your own labeled name dataset. See https://github.com/datamade/probablepeople
+
+# Utilities
 tqdm
+networkx
