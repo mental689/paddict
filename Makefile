@@ -1,5 +1,18 @@
+build:
+	# We need to build first
+	docker-compose build
+
+run:
+	docker-compose up -d
+
+login_to_supervisor:
+	# Login to supervisor node
+	docker exec -ti paddict_supervisor bash
+
 stop_and_remove:
-	docker-compose stop; docker-compose rm -fv; rm -rf db/mariadb/
+	# Stop and remove all instances and data! Use with cautions!
+	echo "CAUTION: All instances and their data will be lost!"
+	docker-compose stop; docker-compose rm -fv; rm -rf db/
 
 stop:
 	docker-compose stop
