@@ -2,7 +2,7 @@
 Double-Metaphone implementation in Python.
 It was an evolved version of the celebrated Soundex algorithm for phonetic matching
 in English.
-Devloped by Lawrence Philips in 1990, its variants such as Metaphone 3 is still 
+Devloped by Lawrence Philips in 1990, its variants such as Metaphone 3 is still
 widely used today.
 """
 
@@ -35,4 +35,40 @@ def double_metaphone_compare(tuple1,tuple2,threshold):
     return False
 
 
+"""
+Name parsing
+"""
+import probablepeople
+from nameparser import HumanName
 
+def parse_name(string):
+    # First try the pretrained CRF model
+    try:
+        results, class_type = probablepeople.tag(string)
+        if class_type != 'Person':
+            print("This is not a person name. Skipping ...")
+            return None
+        # Form full name
+        given_name = ""
+        if 'GivenName' in results:
+            given_name = results['GivenName']
+        elif 'FirstInitial' in results:
+            given_name = results['FirstInitial']
+        surname = ""
+        if 'Surname' in results:
+            surname = results['Surname']
+        elif 'LastInitial' in results:
+            surname = results['Surname']
+        middle_name = ""
+        if 'MiddelName' in results:
+            middle_name = results['MiddleName']
+        elif 'MiddleInitial' in results:
+            middle_name = results['MiddleInitial']
+        full_name = "{} {} {}".format(given_name, middle_name, surname)
+    except probablepeople.RepeatedLabelError as e:
+        # If there are errors, try some rule-based models:
+        print('CRF models cannot process this name {}' + e.original_string)
+        results = HumanName(string)
+        given_name, middle_name, surname = results.first, results.middle, results.last
+        full_name = "{} {} {}".format(given_name, middle_name, surname)
+    return full_name
