@@ -25,5 +25,5 @@ probablepeople # Using CRF to parse human names. One of  the advantages of this 
 tqdm
 networkx
 arxiv
-BeautifulSoup
+BeautifulSoup4
 bibtexparser
