@@ -150,13 +150,13 @@ REST_FRAMEWORK = {
 }
 
 # Neo4J
-NEOMODEL_NEO4J_BOLT_URL = 'bolt://neo4j:paddict@localhost:7687'
+NEOMODEL_NEO4J_BOLT_URL = 'bolt://neo4j:paddict@paddict_neo4j:7687'
 NEOMODEL_SIGNALS = True
 NEOMODEL_FORCE_TIMEZONE = False
 NEOMODEL_ENCRYPTED_CONNECTION = True
 NEOMODEL_MAX_POOL_SIZE = 50
 
-# Solr 8.1.1
+# Elasticsearch
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',

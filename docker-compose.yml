@@ -11,6 +11,8 @@ services: # An example. You can modify such as defining more than one node for e
             - ./static:/static
         depends_on:
             - web
+        networks:
+            - net
 
     db: # MySQL
         image: mariadb:5.5
@@ -26,18 +28,27 @@ services: # An example. You can modify such as defining more than one node for e
             - "33061:3306"
         volumes:
             - ./db/mariadb:/var/lib/mysql
+        networks:
+            - net
 
     neo4j: # Graph data indexing
         image: neo4j:3.0
         container_name: paddict_neo4j
         ports:
-            - "7474:7474"
+            - 7474:7474
+            - 7687:7687
         volumes:
             - ./db/neo4j:/data/dbms
+        environment:
+            NEO4J_AUTH: 'neo4j/paddict'
+        networks:
+            - net
 
     redis: # key-value DB for async tasks
         image: redis:5.0.5
         container_name: paddict_redis
+        networks:
+            - net
     
     es01:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
@@ -58,7 +69,7 @@ services: # An example. You can modify such as defining more than one node for e
         ports:
             - 9200:9200
         networks:
-            - esnet
+            - net
   
     es02:
         image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
@@ -77,9 +88,8 @@ services: # An example. You can modify such as defining more than one node for e
         volumes:
             - esdata02:/usr/share/elasticsearch/data
         networks:
-            - esnet
-    web: 
-        image: openjdk:8
+            - net
+    web:
         build: .
         depends_on:
             - db
@@ -93,7 +103,35 @@ services: # An example. You can modify such as defining more than one node for e
         container_name: paddict_main
         expose:
             - "8000"
-        command: bash -c "/etc/init.d/mysql start && python manage.py collectstatic --noinput && python manage.py makemigrations && python manage.py migrate && gunicorn papers.wsgi -b 0.0.0.0:8000"
+        command: 
+            - bash 
+            - -c 
+            - |
+                /etc/init.d/mysql start 
+                python manage.py collectstatic --noinput 
+                python manage.py makemigrations 
+                python manage.py migrate 
+                python manage.py install_labels
+                gunicorn papers.wsgi -b 0.0.0.0:8000
+        networks:
+            - net
+
+    supervisor: # we need this node to do some others stuffs such as CERMINE/OCR/download, .etc. A human user will login to here to perform some supervised tasks manually. Logs are recorded by docker.
+        build: .
+        depends_on:
+            - web
+        volumes:
+            - ./:/src
+            - ./static:/static
+        container_name: paddict_supervisor
+        stdin_open: true # must have this to prevent stopping after up
+        tty: true # must have this
+        networks:
+            - net
+        #command:
+            #- /etc/init.d/mysql start
+            #- apt install -y openjdk-8-jdk
+            #- java -version
 
 volumes:
     esdata01:
@@ -102,5 +140,5 @@ volumes:
         driver: local
 
 networks:
-    esnet:
+    net:
         driver: bridge

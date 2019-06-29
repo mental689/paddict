@@ -24,19 +24,21 @@ class Event(models.Model):
 
 
 class Author(models.Model):
-    name = models.CharField(max_length=256)
+    surname = models.CharField(max_length=255, null=False, blank=False)
+    givenname = models.CharField(max_length=255, null=False, blank=False)
+    middle = models.CharField(max_length=255, default="")
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering =('name',)
-        unique_together = ['name']
+        ordering =('surname',)
+        unique_together = ['surname', 'middle', 'givenname']
         indexes = [
-                models.Index(fields=['name'], name='name'),
+                models.Index(fields=['surname','middle','givenname'], name='name'),
                 ]
 
     def __str__(self):
-        return self.name
+        return "{} {} {}".format(self.givenname, self.middle, self.surname)
 
 
 class Document(models.Model):
@@ -45,7 +47,7 @@ class Document(models.Model):
     abstract = models.TextField(blank=True, null=True)
     authors = models.ManyToManyField(Author)
     words = models.TextField(default="")
-    notes = HTMLField(default="")
+    notes = models.TextField(default="")
     preprocessed = models.TextField(default="")
     event = models.ForeignKey(Event, on_delete=models.CASCADE, null=True)
     created_at = models.DateTimeField(auto_now_add=True)

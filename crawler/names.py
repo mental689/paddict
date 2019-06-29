@@ -64,11 +64,25 @@ def parse_name(string):
             middle_name = results['MiddleName']
         elif 'MiddleInitial' in results:
             middle_name = results['MiddleInitial']
-        full_name = "{} {} {}".format(given_name, middle_name, surname)
+        full_name = (given_name, middle_name, surname)
     except probablepeople.RepeatedLabelError as e:
         # If there are errors, try some rule-based models:
         print('CRF models cannot process this name {}' + e.original_string)
         results = HumanName(string)
         given_name, middle_name, surname = results.first, results.middle, results.last
-        full_name = "{} {} {}".format(given_name, middle_name, surname)
+        full_name = (given_name, middle_name, surname)
     return full_name
+
+
+def format_name(name):
+    """
+    We only use the format '(GIVEN) (MIDDLE) (SURNAME),
+    but bibtex records may contain some names in the form '(SURNAME), (GIVEN)'.
+    Therefore, we may need to convert such a name into our preferred format.
+    First, detect if there is a comma in the name string.
+    Then convert it into our format.
+    """
+    if ',' in name:
+        name_parts = name.split(',')
+        return '{} {}'.format(' '.join(name_parts[:-1]), name_parts[-1])
+    return name
