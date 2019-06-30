@@ -2,8 +2,8 @@ from celery import Celery
 
 
 app = Celery('crawler',
-             broker='redis://localhost:6379/0',
-             backend='redis://localhost:6379/0',
+             broker='redis://paddict_redis:6379/0',
+             backend='redis://paddict_redis:6379/0',
              include=['crawler.tasks'])
 
 

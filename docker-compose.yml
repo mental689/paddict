@@ -32,15 +32,18 @@ services: # An example. You can modify such as defining more than one node for e
             - net
 
     neo4j: # Graph data indexing
-        image: neo4j:3.0
+        image: marxen68/neo4j-algo:3.5.6
         container_name: paddict_neo4j
         ports:
             - 7474:7474
             - 7687:7687
         volumes:
             - ./db/neo4j:/data/dbms
+              #- ./db/neo4j/plugins:/var/lib/neo4j/plugins
         environment:
             NEO4J_AUTH: 'neo4j/paddict'
+            NEO4J_dbms_security_procedures_unrestricted: "algo.*"
+            NEO4J_dbms_security_procedures_whitelist: "algo.*"
         networks:
             - net
 
