@@ -101,7 +101,7 @@
 														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 													</td>
 													<td><p>{% for a in paper.authors.all %}
-														<b>{{a.name}}</b> 
+                                                        <b>{{a.surname}}, {{a.givenname}} </b> 
 														{% endfor %}</p>
 													</td>
 													<td>

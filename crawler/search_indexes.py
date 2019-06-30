@@ -14,7 +14,7 @@ class DocumentIndex(indexes.SearchIndex, indexes.Indexable):
         return Document
 
     def prepare_authors(self, obj):
-            return [author.name for author in obj.authors.all()]
+            return [author.surname for author in obj.authors.all()]
 
     def index_queryset(self, using=None):
             return self.get_model().objects.all()

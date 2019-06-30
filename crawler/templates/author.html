@@ -1,0 +1,270 @@
+{% extends 'index.html' %}
+{% load static %}
+
+{% block content %}
+				<div class="page-inner">
+					<div class="row">
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body ">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-primary bubble-shadow-small">
+												<i class="far fa-calendar-check"></i>						
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+												<p class="card-category">Name</p>
+                                                <h4 class="card-title">{{author}}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body ">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-info bubble-shadow-small">
+												<i class="fas fa-users"></i>
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+                                                <p class="card-category">{{ events|length }} events</p>
+                                                <h4 class="card-title">{% for event in events %}<a href="/crawler?event={{event.shortname}}">{{event.shortname}}</a> {%endfor%}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-success bubble-shadow-small">
+												<i class="far fa-newspaper"></i>
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+                                                <p class="card-category">Papers</p>
+												<h4 class="card-title">{{ papers|length }}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="col-sm-6 col-md-3">
+							<div class="card card-stats card-round">
+								<div class="card-body">
+									<div class="row align-items-center">
+										<div class="col-icon">
+											<div class="icon-big text-center icon-secondary bubble-shadow-small">
+												<i class="far fa-comments"></i>
+											</div>
+										</div>
+										<div class="col col-stats ml-3 ml-sm-0">
+											<div class="numbers">
+												<p class="card-category">Communities</p>
+												<h4 class="card-title"> {{cc}}</h4>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-6">
+							<div class="card">
+								<div class="card-header">
+									<div class="card-head-row">
+										<div class="card-title">Coauthorships</div>
+										<div class="card-tools">
+										</div>
+									</div>
+								</div>
+								<div class="card-body">
+									<div id="cy"></div>	
+								</div>
+							</div>
+						</div>
+						<div class="col-md-6">
+							<div class="card">
+								<div class="card-header">
+									<div class="card-head-row">
+										<div class="card-title">Topics</div>
+										<div class="card-tools">
+										</div>
+									</div>
+								</div>
+								<div class="card-body">
+									<div class="chart-container" style="min-height: 375px">
+										<div id="words"></div>
+									</div>
+									<div id="myChartLegend"></div>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-12">
+							<div class="card">
+								<div class="card-header">
+									<h4 class="card-title">Papers</h4>
+								</div>
+								<div class="card-body">
+									<div class="table-responsive">
+										<table id="basic-datatables" class="display table table-striped table-hover" >
+											<thead>
+												<tr>
+													<th>Title</th>
+													<th>Authors</th>
+													<th>Event</th>
+													<th>Link</th>
+												</tr>
+											</thead>
+											<tfoot>
+												<tr>
+													<th>Title</th>
+													<th>Authors</th>
+													<th>Event</th>
+													<th>Link</th>
+												</tr>
+											</tfoot>
+											<tbody>
+												{% for paper in papers %}
+												<tr>
+													<td><h4 class="card-title">{{ paper.title }}</h4>
+														<span id="dots-{{paper.id}}"></span>
+														<span id="more-{{paper.id}}" class="more">
+															<p>{{ paper.abstract }}</p></span>
+														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
+													</td>
+													<td><p>{% for a in paper.authors.all %}
+                                                        <b>{{a.surname}}, {{a.givenname}} </b> 
+														{% endfor %}</p>
+													</td>
+													<td>{{paper.event.shortname}}</td>
+													<td><a href="/crawler/reader?id={{paper.id}}" target="_blank">View PDF</a></td>
+												</tr>
+												{% endfor %}
+											</tbody>
+										</table>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+{% endblock %}
+
+{% block js %}
+	<script >
+		$(document).ready(function() {
+			var data = [{% for word in words %}{"word": "{{ word.word }}", "count": {{ word.count}}},{% endfor %}];
+			$(function(){
+ 		 		var countMax = d3.max(data, function(d){ return d.count} );
+  				var sizeScale = d3.scaleLinear().domain([0, countMax]).range([10, 100])
+    				d3.layout.cloud().size([500, 500])
+        			.words(data.map(function(d) {
+                			return {text: d.word, size: sizeScale(d.count)}; 
+            				})
+        			) 
+				.rotate(function() { return (~~(Math.random() * 6) - 3) * 30; })
+				.font("Impact")　
+				.fontSize(function(d) { return d.size; })
+        			.on("end", draw)
+        			.start();
+    
+		   		function draw(words) {
+        			d3.select("#words").append("svg")
+            			.attr("width", "100%")
+           			.attr("height", 500)
+				.attr("class", "ui fluid image") // style using semantic ui
+        			.attr("viewBox", "0 0 500 500")  // ViewBox : x, y, width, height
+            			.append("g")
+            			.attr("transform", "translate(250,250)")
+      				.selectAll("text")
+        			.data(words)
+      				.enter().append("text")
+        			.style("font-size", function(d) { return d.size + "px"; })
+        			.style("font-family", "Impact")
+        			.style("fill", function(d, i) { return d3.schemeCategory10[i % 10]; })
+        			.attr("text-anchor", "middle")
+        			.attr("transform", function(d) {
+          				return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
+        			})
+        			.text(function(d) { return d.text; });
+   				}    
+			}());
+
+			$('#basic-datatables').DataTable({
+			});
+
+			$('#multi-filter-select').DataTable( {
+				"pageLength": 5,
+				initComplete: function () {
+					this.api().columns().every( function () {
+						var column = this;
+						var select = $('<select class="form-control"><option value=""></option></select>')
+						.appendTo( $(column.footer()).empty() )
+						.on( 'change', function () {
+							var val = $.fn.dataTable.util.escapeRegex(
+								$(this).val()
+								);
+
+							column
+							.search( val ? '^'+val+'$' : '', true, false )
+							.draw();
+						} );
+
+						column.data().unique().sort().each( function ( d, j ) {
+							select.append( '<option value="'+d+'">'+d+'</option>' )
+						} );
+					} );
+				}
+			});
+
+			// Add Row
+			$('#add-row').DataTable({
+				"pageLength": 5,
+			});
+
+			var action = '<td> <div class="form-button-action"> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-primary btn-lg" data-original-title="Edit Task"> <i class="fa fa-edit"></i> </button> <button type="button" data-toggle="tooltip" title="" class="btn btn-link btn-danger" data-original-title="Remove"> <i class="fa fa-times"></i> </button> </div> </td>';
+
+			$('#addRowButton').click(function() {
+				$('#add-row').dataTable().fnAddData([
+					$("#addName").val(),
+					$("#addPosition").val(),
+					$("#addOffice").val(),
+					action
+					]);
+				$('#addRowModal').modal('hide');
+
+			});
+		});
+		function myFunction(id) {
+  			var dots = document.getElementById("dots-"+id);
+  			var moreText = document.getElementById("more-"+id);
+  			var btnText = document.getElementById("abs"+id);
+
+  			if (dots.style.display === "none") {
+   				dots.style.display = "inline";
+   	 			btnText.innerHTML = "Read abstract"; 
+    				moreText.style.display = "none";
+  			} else {
+    				dots.style.display = "none";
+    				btnText.innerHTML = "Close abstract"; 
+    				moreText.style.display = "inline";
+  			}
+		}
+	</script>
+{% endblock %}

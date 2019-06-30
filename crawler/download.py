@@ -4,21 +4,18 @@ import bs4
 import django
 django.setup()
 from crawler.models import *
+from crawler import names
 import bibtexparser
 from tqdm import tqdm
-import PyPDF2
 import nltk, string
-import xml.etree.ElementTree as ET
 import urllib, os
 import arxiv
-import urllib.parse as urlparse  
+import urllib.parse as urlparse
 from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
-
-
 ### Redis
 from crawler import tasks
- 
+
 
 def validate_website_url(website):
     """Validate website into valid URL"""
@@ -37,7 +34,7 @@ def validate_website_url(website):
             return path
         else:
             raise ValidationError(message=msg)
-    return website 
+    return website
 
 
 def get_html(url):
@@ -58,7 +55,7 @@ def download(url, output):
 
 def download_arxiv(url, output):
     papers = arxiv.query(id_list=[url.split('/')[-1]])
-    paper =papers[0] if len(papers) > 0 else None
+    paper = papers[0] if len(papers) > 0 else None
     if paper is None: return None
     arxiv.download(paper, slugify=lambda x: output)
     return paper
@@ -91,7 +88,7 @@ def download_openreview(url, output):
     return abstract
 
 
-def crawl_cvpr_page(url):
+def parse_cvf_page(url):
     soup = parse_html(get_html(url))
     # find abstract
     abs_div = soup.find_all('div', attrs={'id':'abstract'})
@@ -110,27 +107,36 @@ def crawl_cvpr_page(url):
     return abstract.strip(), supp_link, pdf_link
 
 
-def pdf2txt(fn):
-    with open(fn, 'rb') as f:
-        reader = PyPDF2.PdfFileReader(f)
-        text = []
-        for page in reader.pages:
-            txt = page.extractText()
-            text.append(txt)
-        text = ''.join(text)
-        stop = nltk.corpus.stopwords.words('english') + list(string.punctuation)
-        return [i for i in nltk.word_tokenize(text.lower()) if i not in stop]
+def install_neo4j_data(document_id, author_idx):
+    try:
+        neo_doc = DocumentNode.nodes.filter(document_id=document_id).first()
+    except Exception as e:
+        neo_doc = None
+    if neo_doc is None:
+        neo_doc = DocumentNode(document_id=document_id)
+        neo_doc.save()
+    for aid in author_idx:
+        try:
+            neo_author = AuthorNode.nodes.filter(author_id=aid).first()
+        except Exception as e:
+            neo_author = None
+        if neo_author is None:
+            neo_author = AuthorNode(author_id=aid)
+            neo_author.save()
+        if not neo_doc.authors.is_connected(neo_author):
+            neo_doc.authors.connect(neo_author)
 
 
 class Downloader(object):
-    def __init__(self, event_url="http://openaccess.thecvf.com/CVPR2013.py", shortname="CVPR2013", name="The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)"):
+    def __init__(self, event_url="http://openaccess.thecvf.com/CVPR2013.py", shortname="CVPR2013", name="The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", dtime="2019/06/16"):
         self.event_url = event_url
-        self.event = Event.objects.filter(shortname=shortname).first()
+        self.event = Event.objects.filter(shortname__iexact=shortname).first()
         if self.event is None:
-            self.event = Event(shortname=shortname, name=name)
+            self.event = Event(shortname=shortname, name=name, time=dtime)
             self.event.save()
         else:
             self.event.name = name
+            self.event.time = dtime
             self.event.save()
 
     def download(self):
@@ -141,13 +147,12 @@ class CVFDownloader(Downloader):
     def __init__(self, *args, **kwargs):
         super(CVFDownloader, self).__init__(*args, **kwargs)
 
-    def download(self, output="cvpr2013.bib"):
+    def download(self, output="download/cvpr2013.bib"):
         soup = parse_html(get_html(self.event_url))
         bibrefs = soup.find_all('div', attrs={'class': 'bibref'})
         links = soup.find_all('a')
         self.bibtexs = []
         for bibref in tqdm(bibrefs):
-            #print(bibref.text)
             self.bibtexs.append(bibref.text.replace('<br>', '\n'))
         with open(output, 'w') as f:
             for bib in self.bibtexs:
@@ -156,55 +161,44 @@ class CVFDownloader(Downloader):
         with open(output) as bibtex_file:
             bib_database = bibtexparser.load(bibtex_file)
             for ent in tqdm(bib_database.entries):
-                pdf_link = ""
+                cvf_link = ""
                 for link in links:
                     if ent['title'].lower() == link.text.lower():
                         if 'href' in link.attrs:
-                            pdf_link = link.attrs['href']
-                doc = Document.objects.filter(title=ent['title'], pdf_link=pdf_link, event=self.event).first()
+                            cvf_link = link.attrs['href']
+                doc = Document.objects.filter(title__iexact=ent['title'], event=self.event).first()
                 if doc is None:
-                    doc = Document(title=ent['title'], pdf_link=pdf_link, event=self.event)
+                    doc = Document(title=ent['title'], event=self.event)
                     doc.save()
-                try:
-                    dn = DocumentNode.nodes.filter(document_id=doc.id).first()
-                except:
-                    dn = None
-                if dn is None:
-                    dn = DocumentNode(document_id=doc.id)
-                    dn.save()
                 authors = ent['author'].split(' and ')
                 for aut in authors:
-                    a = Author.objects.filter(name=aut).first()
+                    try:
+                        surname, givenname = aut.split(',')
+                    except Exception as e:
+                        print(aut)
+                        surname = aut
+                        givenname = ""
+                    middle = ""
+                    a = Author.objects.filter(surname__iexact=surname,middle__iexact=middle,givenname__iexact=givenname).first()
                     if a is None:
-                        a = Author(name=aut)
+                        a = Author(surname=surname,middle=middle,givenname=givenname)
                         a.save()
                     if a not in doc.authors.all():
                         doc.authors.add(a)
                     doc.save()
+                if cvf_link != "" and (doc.abstract is None or len(doc.abstract) < 1):
                     try:
-                        an = AuthorNode.nodes.filter(author_id=a.id).first()
-                    except:
-                        an = None
-                    if an is None:
-                        an = AuthorNode(author_id=a.id)
-                        an.save()
-                    dn.authors.connect(an)
-
-                if pdf_link != "":
-                    try:
-                        a, p, s = crawl_cvpr_page(url="http://openaccess.thecvf.com/"+pdf_link)
+                        a, s, p = parse_cvf_page(url="http://openaccess.thecvf.com/"+cvf_link)
                         doc.abstract = a
+                        doc.pdf_link = "http://openaccess.thecvf.com/"+p
                         doc.save()
                     except Exception as e:
-                        print(e)
+                        #print(e)
                         continue
+                #doc.save()
+                install_neo4j_data(document_id=doc.id, author_idx=[a.id for a in doc.authors.all()])
+                del doc
 
-def convert_name(a):
-    if ',' not in a:
-        lastname = a.split(' ')[-1]
-        firstname = a.replace(lastname, '').strip()
-        return '{}, {}'.format(lastname, firstname)
-    return a
 
 class NIPSDownloader(Downloader):
     def __init_(self, *args, **kwargs):
@@ -230,7 +224,7 @@ class NIPSDownloader(Downloader):
             bibtex = get_html('http://papers.nips.cc/{}'.format(bibtex_link))
         return pdf_link, bibtex_link, bibtex, authors
 
-    def download(self, output="nips1987.bib"):
+    def download(self, output="download/nips1987.bib"):
         soup = parse_html(get_html(self.event_url))
         links = soup.find_all('a')
         links = [l for l in links if 'href' in l.attrs and 'paper/' in l.attrs['href']]
@@ -239,41 +233,32 @@ class NIPSDownloader(Downloader):
             title = link.text
             if 'href' not in link.attrs: continue
             nips_link = link.attrs['href']
-            doc = Document.objects.filter(title=title, pdf_link=nips_link, event=self.event).first()
+            doc = Document.objects.filter(title__iexact=title, event=self.event).first()
             if doc is None:
-                doc = Document(title=title, pdf_link=nips_link, event=self.event)
+                doc = Document(title=title, event=self.event)
                 doc.save()
-            try:
-                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
-            except:
-                dn = None
-            if dn is None:
-                dn = DocumentNode(document_id=doc.id)
-                dn.save()
             # Crawl the profile page of the paper
             try:
                 p, bl, b, authors = self.get_paper_links(url=nips_link)
+                doc.pdf_link = p
+                doc.save()
             except Exception as e:
                 print(e)
                 print(nips_link)
                 continue
             f.write(b+'\n')
             for a in authors:
-                author = Author.objects.filter(name=convert_name(a)).first()
+                givenname, middle, surname = names.parse_name(a)
+                author = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname.first())
                 if author is None:
-                    author = Author(name=convert_name(a))
+                    author = Author(surname=surname, middle=middle, givenname=givenname)
                     author.save()
                 if author not in doc.authors.all():
                     doc.authors.add(author)
                     doc.save()
-                try:
-                    an = AuthorNode.nodes.filter(author_id=a.id).first()
-                except:
-                    an = None
-                if an is None:
-                    an = AuthorNode(author_id=a.id)
-                    an.save()
-                dn.authors.connect(an)
+            abstract = self.get_abstract(url=nips_link)
+            doc.abstract = abstract
+            doc.save()
         f.close()
 
     def get_abstract(self, url):
@@ -287,84 +272,40 @@ class NIPSDownloader(Downloader):
         return abstract
 
 
-class DLBPDownloader(Downloader):
+class DBLPDownloader(Downloader):
     def __init_(self, *args, **kwargs):
-        super(DLBPDownloader, self).__init(*args, **kwargs)
+        super(DBLPDownloader, self).__init(*args, **kwargs)
 
-    def download(self, output="iclr2013.xml", download_pdf=True):
-        xml_data = urllib.request.urlopen(self.event_url).read()
-        open(output, 'wb').write(xml_data)
-        root = ET.fromstring(xml_data)
-        objs = []
-        for hit in tqdm(root.iter('hit')):
-            authors = []
-            title = ""
-            for a in hit.iter('author'):
-                authors.append(convert_name(a.text))
-            if len(authors) < 1:
-                continue
-            for t in hit.iter('title'):
-                title =t.text
-            if len(title) < 5:
-                continue
-            not_download = False
-            for t in hit.iter('type'):
-                if t.text in ['Editorship']:
-                    not_download = True
-                    break
-            if not_download: continue
-            ee = ""
-            for t in hit.iter('ee'):
-                ee = t.text
-            try:
-                ee = validate_website_url(ee)
-            except:
-                ee = None
-            # DB
-            doc = Document.objects.filter(title__iexact=title).first()
+    def download(self, output="download/iclr2013.json", download_pdf=True):
+        json_data = urllib.request.urlopen(self.event_url).read()
+        open(json_data, 'w').write(json_data)
+        records = json_data['hits']['hit']
+        for record in records:
+            title = record["info"]["title"]
+            doc  = Document.objects.filter(title__iexact=title, event=self.event).first()
             if doc is None:
                 doc = Document(title=title, event=self.event)
                 doc.save()
-            doc.event = self.event
-            doc.save()
-            # Update Neo4J
-            try:
-                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
-            except:
-                dn = None
-            if dn is None:
-                dn = DocumentNode(document_id=doc.id)
-                dn.save()
+            authors = record["info"]["authors"]["author"]
             for author in authors:
-                a = Author.objects.filter(name__iexact=author).first()
+                givenname, middle, surname = names.parse_name(author)
+                a = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname).first()
                 if a is None:
-                    a = Author(name=author)
+                    a = Author(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname)
                     a.save()
                 if a not in doc.authors.all():
                     doc.authors.add(a)
                     doc.save()
-                try:
-                    an = AuthorNode.nodes.filter(author_id=a.id).first()
-                except:
-                    an = None
-                if an is None:
-                    an = AuthorNode(author_id=a.id)
-                    an.save()
-                dn.authors.connect(an)
-            #if os.path.exists('static/paper{}'.format(doc.id)): continue
-            obj = {
-                "title": title,
-                "authors": authors,
-                "url": ee
-                }
+            ee = record["info"]["ee"]
             if download_pdf:
                 if 'arxiv' in ee:
-                    res = tasks.download_arxiv.apply_async((ee, 'static/paper{}'.format(doc.id), doc.id))
+                    res = tasks.download_arxiv.apply_async((ee, 'download/paper{}'.format(doc.id), doc.id))
                 else:
-                    res = tasks.download_openreview.apply_async((ee, 'static/paper{}.pdf'.format(doc.id), doc.id))
+                    res = tasks.download_openreview.apply_async((ee, 'download/paper{}.pdf'.format(doc.id), doc.id))
                 obj['redis_id'] = res.id
+                doc.pdf_link = 'download/paper{}.pdf'.format(doc.id)
+                doc.save()
             objs.append(obj)
-        return objs
 
 
 class MLRDownloader(Downloader):
@@ -420,13 +361,6 @@ class MLRDownloader(Downloader):
                     print(e)
                     print(title)
                     continue
-            try:
-                dn = DocumentNode.nodes.filter(document_id=doc.id).first()
-            except:
-                dn = None
-            if dn is None:
-                dn = DocumentNode(document_id=doc.id)
-                dn.save()
             for author in authors:
                 name = convert_name(author)
                 a = Author.objects.filter(name__iexact=name).first()
@@ -441,37 +375,9 @@ class MLRDownloader(Downloader):
                 if a not in doc.authors.all():
                     doc.authors.add(a)
                     doc.save()
-                try:
-                    an = AuthorNode.nodes.filter(author_id=a.id).first()
-                except:
-                    an = None
-                if an is None:
-                    an = AuthorNode(author_id=a.id)
-                    an.save()
-                dn.authors.connect(an)
         f.close()
 
 
-
-if __name__ == '__main__':
-    event = Event.objects.filter(shortname="CVPR 2019").first()
-    if event is None:
-        event = Event(shortname="CVPr 2019")
-        event.save()
-    with open('cvpr2019.bib') as bibtex_file:
-        bib_database = bibtexparser.load(bibtex_file)
-        #print(bib_database.entries)
-        for ent in tqdm(bib_database.entries):
-            doc = Document(title=ent['title'], pdf_link="", event=event)
-            doc.save()
-            authors = ent['author'].split(' and ')
-            for aut in authors:
-                a = Author.objects.filter(name=aut).first()
-                if a is None:
-                    a = Author(name=aut)
-                    a.save()
-                doc.authors.add(a)
-                doc.save()
 
 
 

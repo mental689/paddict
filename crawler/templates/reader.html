@@ -64,7 +64,7 @@ Reader
 						</div>
 					</div>
 					<div class="card-body">
-						<div><p><b>Authors: {%for a in paper.authors.all%}{{a.name}} {%endfor%}</b></p></div>
+                        <div><p><b>Authors: {%for a in paper.authors.all%}{{a.surname}}, {{a.givenname}} {%endfor%}</b></p></div>
 						<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
 						<div><b>Abstract:</b>{{paper.abstract}}</div>
 					</div>
@@ -134,7 +134,7 @@ Reader
     	<script src="https://www.webrtc-experiment.com/getHTMLMediaElement.js"></script>
 	<script type="text/javascript">
 		jQuery.curCSS = jQuery.css;
-		PDFObject.embed("/static/paper{{paper.id}}.pdf", "#example1");
+        PDFObject.embed("{{paper.pdf_link}}", "#example1");
 		var tagger = new Taggle('tags', {
 			tags: [],
     			duplicateTagClass: 'bounce'

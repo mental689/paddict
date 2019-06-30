@@ -37,7 +37,7 @@ class IndexView(TemplateView):
             cc = int(request.GET.get('cc', None)) # the index of the connected components which will be shown.
         except:
             cc = None
-        events = Event.objects.filter(shortname__contains=name).all()
+        events = Event.objects.filter(shortname__icontains=name).all() if name is not None else []
         ctx = super().get_context_data(**kwargs)
         ctx['events'] = events
         ctx['authors'] = Author.objects.filter(document__event__in=events).all().distinct()
@@ -60,16 +60,17 @@ class IndexView(TemplateView):
         community_papers_idx = []
         community_authors_idx = []
         cc_id = cc-1 if cc is not None else 0
-        for id in results[cc_id][1]:
-            if id in authors_idx:
-                ctx['max_cc_authors'] += 1
-                community_authors_idx.append(authors_map[id])
-            else:
-                ctx['max_cc_papers'] += 1
-                community_papers_idx.append(docs_map[id])
+        if len(results) > 0:
+            for id in results[cc_id][1]:
+                if id in authors_idx:
+                    ctx['max_cc_authors'] += 1
+                    community_authors_idx.append(authors_map[id])
+                else:
+                    ctx['max_cc_papers'] += 1
+                    community_papers_idx.append(docs_map[id])
         # Number of connected components (groups of separated authors and papers):
         ctx['cc'] = len(results)
-        ctx['cc_max'] = results[0][2]
+        ctx['cc_max'] = results[0][2] if len(results) > 0 else 0
         ctx['centred'] = Document.objects.filter(id__in=community_papers_idx, event__in=events).all()
         if cc is not None: ctx['authors'] = Author.objects.filter(document__event__in=events, id__in=community_authors_idx).all()
         if cc is not None: ctx['papers'] = ctx['centred']
@@ -158,7 +159,7 @@ class ReadingView(TemplateView):
             paper = Document.objects.filter(id=id).first()
         except Exception as e:
             return redirect('/crawler/?event=')
-        if paper is None: 
+        if paper is None:
             return redirect('/crawler/?event=')
         tags = request.POST.getlist('taggles[]')
         for tag in tags:
@@ -176,4 +177,25 @@ class ReadingView(TemplateView):
             c = Comment(text=comment, doc=paper)
             c.save()
         return redirect('/crawler/reader?id={}'.format(id))
-    
+
+
+class AuthorView(TemplateView):
+    template_name = "author.html"
+
+    def get(self, request, *args, **kwargs):
+        id = int(request.GET.get('id', None))
+        if id is not None:
+            author = Author.objects.filter(id=id).first()
+            ctx = super().get_context_data(**kwargs)
+            if author is None:
+                ctx['found'] = False
+            else:
+                ctx['found'] = True
+                # collect information about him
+                ctx['author'] = author
+                ctx['papers'] = author.document_set.all() # his papers
+                ctx['events'] = Event.objects.filter(document__authors__id__contains=author.id).distinct().all() # events for which he contributed to
+                ctx['tags'] = Tag.objects.filter(tagassignment__doc__authors__id__contains=author.id).distinct().all() # tags in his papers
+                ctx['words'] = count_words(words=[w for w in nltk.word_tokenize(' '.join([d.title for d in ctx['papers']])) if w not in STOPWORDS and len(w)>2]) # to generate a wordcloud about his topics
+        else: ctx['found'] = False
+        return self.render_to_response(ctx)

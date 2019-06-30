@@ -15,9 +15,9 @@ services: # An example. You can modify such as defining more than one node for e
             - net
 
     db: # MySQL
-        image: mariadb:5.5
-        command: --bind-address=0.0.0.0
+        image: mariadb:5.5 #mysql:5.7
         container_name: paddict_db
+        command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
         environment:
             - MYSQL_HOST=localhost
             - MYSQL_PORT=3306  # cannot change this port to other number
@@ -26,8 +26,10 @@ services: # An example. You can modify such as defining more than one node for e
             - MYSQL_ROOT_PASSWORD=paddict
         ports:
             - "33061:3306"
+        expose:
+            - 3306
         volumes:
-            - ./db/mariadb:/var/lib/mysql
+            - ./db/mysql:/var/lib/mysql
         networks:
             - net
 
@@ -54,7 +56,7 @@ services: # An example. You can modify such as defining more than one node for e
             - net
     
     es01:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        image: blacktop/elasticsearch:2.4
         container_name: es01
         environment:
             - node.name=es01
@@ -75,7 +77,7 @@ services: # An example. You can modify such as defining more than one node for e
             - net
   
     es02:
-        image: docker.elastic.co/elasticsearch/elasticsearch:7.2.0
+        image: blacktop/elasticsearch:2.4
         container_name: es02
         environment:
             - node.name=es02

@@ -89,10 +89,9 @@ DATABASES = {
         'HOST': 'db',
         'PORT': '3306',
         'PASSWORD': 'paddict',
-        'default-character-set': 'utf8',
         'OPTIONS': {
-            'sql_mode': 'traditional',
-
+            'charset': 'utf8',
+            'sql_mode': 'TRADITIONAL,NO_AUTO_VALUE_ON_ZERO,ONLY_FULL_GROUP_BY',
         }
     }
 }
@@ -160,7 +159,7 @@ NEOMODEL_MAX_POOL_SIZE = 50
 HAYSTACK_CONNECTIONS = {
     'default': {
         'ENGINE': 'haystack.backends.elasticsearch2_backend.Elasticsearch2SearchEngine',
-        'URL': 'http://127.0.0.1:9200/',
+        'URL': 'http://es01:9200/',
         'INDEX_NAME': 'paddict',
         },
 }
