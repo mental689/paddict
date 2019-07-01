@@ -196,6 +196,6 @@ class AuthorView(TemplateView):
                 ctx['papers'] = author.document_set.all() # his papers
                 ctx['events'] = Event.objects.filter(document__authors__id__contains=author.id).distinct().all() # events for which he contributed to
                 ctx['tags'] = Tag.objects.filter(tagassignment__doc__authors__id__contains=author.id).distinct().all() # tags in his papers
-                ctx['words'] = count_words(words=[w for w in nltk.word_tokenize(' '.join([d.title for d in ctx['papers']])) if w not in STOPWORDS and len(w)>2]) # to generate a wordcloud about his topics
+                ctx['words'] = count_words(words=[w for w in nltk.word_tokenize(' '.join([d.title for d in ctx['papers']])) if w.lower() not in STOPWORDS and len(w)>2]) # to generate a wordcloud about his topics
         else: ctx['found'] = False
         return self.render_to_response(ctx)
