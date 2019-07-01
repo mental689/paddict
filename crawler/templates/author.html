@@ -23,7 +23,7 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-sm-6 col-md-3">
+						<div class="col-sm-6 col-md-6">
 							<div class="card card-stats card-round">
 								<div class="card-body ">
 									<div class="row align-items-center">
@@ -61,42 +61,9 @@
 								</div>
 							</div>
 						</div>
-						<div class="col-sm-6 col-md-3">
-							<div class="card card-stats card-round">
-								<div class="card-body">
-									<div class="row align-items-center">
-										<div class="col-icon">
-											<div class="icon-big text-center icon-secondary bubble-shadow-small">
-												<i class="far fa-comments"></i>
-											</div>
-										</div>
-										<div class="col col-stats ml-3 ml-sm-0">
-											<div class="numbers">
-												<p class="card-category">Communities</p>
-												<h4 class="card-title"> {{cc}}</h4>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
 					</div>
 					<div class="row">
-						<div class="col-md-6">
-							<div class="card">
-								<div class="card-header">
-									<div class="card-head-row">
-										<div class="card-title">Coauthorships</div>
-										<div class="card-tools">
-										</div>
-									</div>
-								</div>
-								<div class="card-body">
-									<div id="cy"></div>	
-								</div>
-							</div>
-						</div>
-						<div class="col-md-6">
+						<div class="col-md-12">
 							<div class="card">
 								<div class="card-header">
 									<div class="card-head-row">
@@ -149,7 +116,7 @@
 														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 													</td>
 													<td><p>{% for a in paper.authors.all %}
-                                                        <b>{{a.surname}}, {{a.givenname}} </b> 
+                                                            <b><a href="/crawler/author?id={{a.id}}">{{a.surname}}, {{a.givenname}}</a> </b> 
 														{% endfor %}</p>
 													</td>
 													<td>{{paper.event.shortname}}</td>
@@ -173,7 +140,7 @@
 			$(function(){
  		 		var countMax = d3.max(data, function(d){ return d.count} );
   				var sizeScale = d3.scaleLinear().domain([0, countMax]).range([10, 100])
-    				d3.layout.cloud().size([500, 500])
+    				d3.layout.cloud().size([1000, 500])
         			.words(data.map(function(d) {
                 			return {text: d.word, size: sizeScale(d.count)}; 
             				})
@@ -189,9 +156,9 @@
             			.attr("width", "100%")
            			.attr("height", 500)
 				.attr("class", "ui fluid image") // style using semantic ui
-        			.attr("viewBox", "0 0 500 500")  // ViewBox : x, y, width, height
+        			.attr("viewBox", "0 0 1000 500")  // ViewBox : x, y, width, height
             			.append("g")
-            			.attr("transform", "translate(250,250)")
+            			.attr("transform", "translate(500,250)")
       				.selectAll("text")
         			.data(words)
       				.enter().append("text")
@@ -202,7 +169,10 @@
         			.attr("transform", function(d) {
           				return "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")";
         			})
-        			.text(function(d) { return d.text; });
+        			.text(function(d) { return d.text; })
+                    .on("click", function (d, i){
+                        window.open("/crawler/tag?tag="+d.text, "_blank");
+                    });
    				}    
 			}());
 

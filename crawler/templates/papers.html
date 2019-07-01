@@ -80,7 +80,8 @@
 											<thead>
 												<tr>
 													<th>Title</th>
-													<th>Authors</th>
+                                                    <th>Authors</th>
+                                                    <th>Event</th>
 													<th>Link</th>
 												</tr>
 											</thead>
@@ -88,6 +89,7 @@
 												<tr>
 													<th>Title</th>
 													<th>Authors</th>
+                                                    <th>Event</th>
 													<th>Link</th>
 												</tr>
 											</tfoot>
@@ -101,9 +103,12 @@
 														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 													</td>
 													<td><p>{% for a in paper.authors.all %}
-                                                        <b>{{a.surname}}, {{a.givenname}} </b> 
+                                                            <b><a href="/crawler/author?id={{a.id}}">{{a.surname}}, {{a.givenname}}</a> </b> 
 														{% endfor %}</p>
 													</td>
+                                                    <td>
+                                                        {{paper.event.shortname}}
+                                                    </td>
 													<td>
 														<a href="http://openaccess.thecvf.com/{{paper.pdf_link}}" target="_blank">CVF</a>
 														<a href="/crawler/reader?id={{paper.id}}" target="_blank">PDF</a>
