@@ -182,7 +182,13 @@ class CVFDownloader(Downloader):
                     a = Author.objects.filter(surname__iexact=surname,middle__iexact=middle,givenname__iexact=givenname).first()
                     if a is None:
                         a = Author(surname=surname,middle=middle,givenname=givenname)
-                        a.save()
+                        try:
+                            a.save()
+                        except Exception as e:
+                            print(e)
+                            middle = middle + ", II"
+                            a = Author(surname=surname, middle=middle, givenname=givenname)
+                            a.save()
                     if a not in doc.authors.all():
                         doc.authors.add(a)
                     doc.save()
