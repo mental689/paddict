@@ -9,7 +9,7 @@ gunicorn==19.6.0
 
 # Indexers & DB
 elasticsearch==2.4.1
-celery>=4.3.0
+celery[redis]>=4.3.0
 mysqlclient
 
 # Language processing & OCR

@@ -120,6 +120,22 @@ services: # An example. You can modify such as defining more than one node for e
                 gunicorn papers.wsgi -b 0.0.0.0:8000
         networks:
             - net
+    
+    celery: # This node is to run celery to connect to redis
+        build: .
+        depends_on:
+            - web
+        volumes:
+            - ./:/src
+            - ./static:/static
+        container_name: celery
+        command:
+            - bash
+            - -c
+            - |
+                celery -A papers worker --loglevel=info
+        networks:
+            - net
 
     supervisor: # we need this node to do some others stuffs such as CERMINE/OCR/download, .etc. A human user will login to here to perform some supervised tasks manually. Logs are recorded by docker.
         build: .
