@@ -255,16 +255,23 @@ class NIPSDownloader(Downloader):
             f.write(b+'\n')
             for a in authors:
                 givenname, middle, surname = names.parse_name(a)
-                author = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname.first())
+                author = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname).first()
                 if author is None:
                     author = Author(surname=surname, middle=middle, givenname=givenname)
-                    author.save()
+                    try:
+                        author.save()
+                    except Exception as e:
+                        print(e)
+                        middle = middle + ', II'
+                        author = Author(surname=surname, middle=middle, givenname=givenname)
+                        author.save()
                 if author not in doc.authors.all():
                     doc.authors.add(author)
                     doc.save()
             abstract = self.get_abstract(url=nips_link)
             doc.abstract = abstract
             doc.save()
+            install_neo4j_data(document_id=doc.id, author_idx=[a.id for a in doc.authors.all()])
         f.close()
 
     def get_abstract(self, url):

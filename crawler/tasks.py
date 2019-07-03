@@ -1,10 +1,26 @@
-from crawler.celery import app
+from celery import task, shared_task
 
 from crawler import download
 from crawler.models import *
+import os
 
 
-@app.task
+@shared_task
+def download_direct(output, id, check_downloaded=True):
+    try:
+        doc = Document.objects.filter(id=id).first()
+        url = doc.pdf_link
+        if check_downloaded and os.path.exists(output):
+            doc.pdf_link = output
+        else:
+            download.download(url, output)
+            doc.pdf_link = output
+        doc.save()
+    except Exception as e:
+        return '{}'.format(e)
+    return output
+
+@shared_task
 def download_arxiv(url, output, id):
     try:
         paper = download.download_arxiv(url, output)
@@ -22,7 +38,7 @@ def download_arxiv(url, output, id):
     return paper
 
 
-@app.task
+@shared_task
 def download_openreview(url, output, id):
     try:
         abstract = download.download_openreview(url, output)
@@ -32,4 +48,8 @@ def download_openreview(url, output, id):
     if doc is not None:
         doc.abstract = abstract
         doc.save()
-    return abstract   
+    return abstract
+
+@shared_task
+def add(x,y):
+    return x + y
