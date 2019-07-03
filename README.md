@@ -14,6 +14,8 @@ We use SQL and [Neo4J](https://neo4j.com/docs/cypher-manual/current/) for this p
 ### TODO
 
 * Extract references list of each papers.
+* Move graph layout to server side.
+    * Currently, it is processed in the client with fCoSE algorithm or CoSE algorithm, but even the faster version requires several minutes to finish interactive drawing of graph layouts.
 
 
 ### Changes
