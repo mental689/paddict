@@ -126,7 +126,7 @@ class ReadingView(TemplateView):
         ctx['paper'] = Document.objects.filter(id=id).first()
         # find the largest connect components in collaboration network,
         # for which one of the authors of this paper belongs to.
-        query = "CALL algo.unionFind.stream('MATCH (p:AuthorNode) RETURN id(p) as id', 'MATCH (p1:AuthorNode)-[f:COAUTHOR]->(p2:AuthorNode) RETURN id(p1) as source, id(p2) as target, f.num_papers as weight', {graph:'cypher'}) YIELD nodeId, setId RETURN setId, collect(nodeId), count(nodeId) as size_of_component ORDER BY size_of_component DESC;"
+        query = "CALL algo.unionFind.stream('MATCH (p) RETURN id(p) as id', 'MATCH (d:DocumentNode)-[]-(a:AuthorNode) RETURN id(d) as source, id(a) as target UNION MATCH (p1:AuthorNode)-[f:COAUTHOR]->(p2:AuthorNode) RETURN id(p1) as source, id(p2) as target', {graph:'cypher'}) YIELD nodeId, setId RETURN setId, collect(nodeId), count(nodeId) as size_of_component ORDER BY size_of_component DESC;"
         results, meta = neomodel.db.cypher_query(query)
         max_cc = results[0][2]
         authors = ctx['paper'].authors.all()
@@ -194,8 +194,19 @@ class AuthorView(TemplateView):
                 # collect information about him
                 ctx['author'] = author
                 ctx['papers'] = author.document_set.all() # his papers
-                ctx['events'] = Event.objects.filter(document__authors__id__contains=author.id).distinct().all() # events for which he contributed to
+                ctx['events'] = set([p.event for p in ctx['papers']])#Event.objects.filter(document__authors__id__contains=author.id).distinct().all() # events for which he contributed to
                 ctx['tags'] = Tag.objects.filter(tagassignment__doc__authors__id__contains=author.id).distinct().all() # tags in his papers
                 ctx['words'] = count_words(words=[w for w in nltk.word_tokenize(' '.join([d.title for d in ctx['papers']])) if w.lower() not in STOPWORDS and len(w)>2]) # to generate a wordcloud about his topics
         else: ctx['found'] = False
+        return self.render_to_response(ctx)
+
+
+class AuthorListView(TemplateView):
+    template_name = "author_list.html"
+
+    def get(self, request, *args, **kwargs):
+        authors = Author.objects.all()
+        ctx = super().get_context_data(**kwargs)
+        ctx['authors'] = authors
+        print(len(authors))
         return self.render_to_response(ctx)

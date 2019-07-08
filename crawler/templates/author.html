@@ -136,6 +136,7 @@
 {% block js %}
 	<script >
 		$(document).ready(function() {
+            $('html').addClass('sidebar_minimize');
 			var data = [{% for word in words %}{"word": "{{ word.word }}", "count": {{ word.count}}},{% endfor %}];
 			$(function(){
  		 		var countMax = d3.max(data, function(d){ return d.count} );

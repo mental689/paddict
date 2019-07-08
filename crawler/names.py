@@ -46,7 +46,7 @@ def parse_name(string):
     try:
         results, class_type = probablepeople.tag(string)
         if class_type != 'Person':
-            raise ValueErrort("Skipping ...")
+            raise ValueError("Skipping ...")
             return None
         # Form full name
         given_name = ""
@@ -67,7 +67,7 @@ def parse_name(string):
         full_name = (given_name, middle_name, surname)
     except Exception as e:
         # If there are errors, try some rule-based models:
-        print('CRF models cannot process this name {}' + e.original_string)
+        print('CRF models cannot process this name {}' + string)
         results = HumanName(string)
         given_name, middle_name, surname = results.first, results.middle, results.last
         full_name = (given_name, middle_name, surname)
