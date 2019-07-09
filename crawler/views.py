@@ -97,10 +97,10 @@ class PaperListView(TemplateView):
     template_name = "papers.html"
 
     def get(self, request, *args, **kwargs):
-        id = request.GET.get('event', 1)
+        name = request.GET.get('event', None) # search for event by name
         ctx = super().get_context_data(**kwargs)
         ctx['authors'] = Author.objects.all()
-        ctx['papers'] = Document.objects.filter(event__id=id).all()
+        ctx['papers'] = Document.objects.filter(event__shortname__icontains=name).all()
         return self.render_to_response(ctx)
 
 class PaperListByTagView(TemplateView):
