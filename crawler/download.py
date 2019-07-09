@@ -15,6 +15,7 @@ from django.core.validators import URLValidator
 from django.core.exceptions import ValidationError
 ### Redis
 from crawler import tasks
+import json
 
 
 def validate_website_url(website):
@@ -287,13 +288,14 @@ class NIPSDownloader(Downloader):
 
 class DBLPDownloader(Downloader):
     def __init_(self, *args, **kwargs):
-        super(DBLPDownloader, self).__init(*args, **kwargs)
+        super(DBLPDownloader, self).__init__(*args, **kwargs)
 
-    def download(self, output="download/iclr2013.json", download_pdf=True):
-        json_data = urllib.request.urlopen(self.event_url).read()
-        open(json_data, 'w').write(json_data)
-        records = json_data['hits']['hit']
-        for record in records:
+    def download(self, output="download/iclr2013.json", download_pdf=False):
+        json_data = json.loads(urllib.request.urlopen(self.event_url).read())
+        open(output, 'w').write(str(json_data))
+        #json_data = json.load(open(output))
+        records = json_data['result']['hits']['hit']
+        for record in tqdm(records):
             title = record["info"]["title"]
             doc  = Document.objects.filter(title__iexact=title, event=self.event).first()
             if doc is None:
@@ -304,21 +306,21 @@ class DBLPDownloader(Downloader):
                 givenname, middle, surname = names.parse_name(author)
                 a = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname).first()
                 if a is None:
-                    a = Author(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname)
+                    a = Author(surname=surname, middle=middle, givenname=givenname)
                     a.save()
                 if a not in doc.authors.all():
                     doc.authors.add(a)
                     doc.save()
             ee = record["info"]["ee"]
+            install_neo4j_data(document_id=doc.id, author_idx=[a.id for a in doc.authors.all()])
             if download_pdf:
                 if 'arxiv' in ee:
-                    res = tasks.download_arxiv.apply_async((ee, 'download/paper{}'.format(doc.id), doc.id))
+                    res = tasks.download_arxiv.apply_async((ee, 'static/download/paper{}'.format(doc.id), doc.id))
                 else:
-                    res = tasks.download_openreview.apply_async((ee, 'download/paper{}.pdf'.format(doc.id), doc.id))
-                obj['redis_id'] = res.id
-                doc.pdf_link = 'download/paper{}.pdf'.format(doc.id)
+                    res = tasks.download_openreview.apply_async((ee, 'static/download/paper{}.pdf'.format(doc.id), doc.id))
+                #obj['redis_id'] = res.id
+                doc.pdf_link = 'static/download/paper{}.pdf'.format(doc.id)
                 doc.save()
-            objs.append(obj)
 
 
 class MLRDownloader(Downloader):

@@ -39,6 +39,19 @@ def tag_all():
         results.append(result)
     return results
 
+@shared_task
+def extract_keywords_from_pdf_task(id):
+    try:
+        doc = Document.objects.filter(id=id).first()
+        if doc is None or not os.path.exists(doc.pdf_link):
+            return None
+        words = extract_keywords_from_pdf(doc.pdf_link)
+        doc.words = ' '.join(words)
+        doc.save()
+    except:
+        return None
+    return doc.id
+
 
 @shared_task
 def download_direct(output, id, check_downloaded=True):
@@ -51,11 +64,11 @@ def download_direct(output, id, check_downloaded=True):
             download.download(url, output)
         if not os.path.exists(output) or not os.path.isfile(output):
             raise ValueError('Could not download {} due to some network issues'.format(output))
-            #doc.pdf_link = output
-        words = extract_keywords_from_pdf(output)
-        doc.words = ' '.join(words)
-        if output != doc.pdf_link:
-            os.remove(output) # remove after extracting needed information, to save disk
+        doc.pdf_link = output
+        #words = extract_keywords_from_pdf(output)
+        #doc.words = ' '.join(words)
+        #if output != doc.pdf_link:
+        #    os.remove(output) # remove after extracting needed information, to save disk
         doc.save()
     except Exception as e:
         return '{}'.format(e)
