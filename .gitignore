@@ -6,6 +6,7 @@ static/rest_framework
 crawler/migrations/*
 !crawler/migrations/__init__.py
 db/
+static/download
 *.images
 *.*xml
 *.bib
