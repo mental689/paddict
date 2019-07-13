@@ -140,11 +140,7 @@ Reader
                     };
                 };
         jQuery.curCSS = jQuery.css;
-        if ("{{paper.pdf_link}}".indexOf('http') != -1) {
-            PDFObject.embed("{{paper.pdf_link}}", "#example1");
-        } else {
-            PDFObject.embed("/{{paper.pdf_link}}", "#example1");
-        }
+        PDFObject.embed("/static/download/paper{{paper.id}}.pdf", "#example1");
 		var tagger = new Taggle('tags', {
 			tags: [],
     			duplicateTagClass: 'bounce'

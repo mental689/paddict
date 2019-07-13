@@ -1,0 +1,1 @@
+Found. Redirecting to /cose-base@1.0.0/cose-base.js
