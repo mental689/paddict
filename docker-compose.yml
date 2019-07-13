@@ -10,9 +10,9 @@ services: # An example. You can modify such as defining more than one node for e
             - ./config/nginx:/etc/nginx/conf.d
             - ./static:/static
         depends_on:
-            - web
+            - student
         networks:
-            - net
+            - net 
 
     db: # MySQL
         image: mariadb:5.5 #mysql:5.7
@@ -116,7 +116,7 @@ services: # An example. You can modify such as defining more than one node for e
                 python manage.py collectstatic --noinput 
                 python manage.py makemigrations 
                 python manage.py migrate
-                python manage.py update_index
+                python manage.py update_index --batch-size 1 --workers 4 --verbosity 2
                 python manage.py install_labels
                 gunicorn papers.wsgi -b 0.0.0.0:8000
         networks:
@@ -125,7 +125,7 @@ services: # An example. You can modify such as defining more than one node for e
     celery: # This node is to run celery to connect to redis
         image: marxen68/paddict:latest
         depends_on:
-            - web
+            - student
         volumes:
             - ./:/src
             - ./static:/static
@@ -141,7 +141,7 @@ services: # An example. You can modify such as defining more than one node for e
     supervisor: # we need this node to do some others stuffs such as CERMINE/OCR/download, .etc. A human user will login to here to perform some supervised tasks manually. Logs are recorded by docker.
         image: marxen68/paddict:latest
         depends_on:
-            - web
+            - student
         volumes:
             - ./:/src
             - ./static:/static
