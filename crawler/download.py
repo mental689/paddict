@@ -127,17 +127,46 @@ def install_neo4j_data(document_id, author_idx):
         if not neo_doc.authors.is_connected(neo_author):
             neo_doc.authors.connect(neo_author)
 
+def add_document(event, title, abstract, pdf_link, authors):
+    doc = Document.objects.filter(title__iexact=title, event=event).first()
+    if doc is None:
+        doc = Document(title=title, event=event, abstract=abstract, pdf_link=pdf_link)
+        try:
+            doc.save()
+        except Exception as e:
+            print(e)
+            print(title)
+            #continue
+            return
+    for author in authors:
+        givenname, middle, surname = names.parse_name(author)
+        a = Author.objects.filter(surname__iexact=surname, middle__iexact=middle, givenname__iexact=givenname).first()
+        if a is None:
+            a = Author(surname=surname, middle=middle, givenname=givenname)
+        try:
+            a.save()
+        except Exception as e:
+            print(e)
+            print(author)
+            #continue
+            return
+        if a not in doc.authors.all():
+            doc.authors.add(a)
+            doc.save()
+    install_neo4j_data(doc.id, [a.id for a in doc.authors.all()])
+
 
 class Downloader(object):
     def __init__(self, event_url="http://openaccess.thecvf.com/CVPR2013.py", shortname="CVPR2013", name="The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", dtime="2019/06/16"):
         self.event_url = event_url
         self.event = Event.objects.filter(shortname__iexact=shortname).first()
         if self.event is None:
-            self.event = Event(shortname=shortname, name=name, time=dtime)
+            self.event = Event(shortname=shortname, name=name, url=event_url, time=dtime)
             self.event.save()
         else:
             self.event.name = name
             self.event.time = dtime
+            self.event.url = event_url
             self.event.save()
 
     def download(self):
@@ -367,32 +396,57 @@ class MLRDownloader(Downloader):
                 print(e)
                 continue
             f.write(bibtex+'\n')
-            doc = Document.objects.filter(title__iexact=title, event=self.event).first()
-            if doc is None:
-                doc = Document(title=title, event=self.event, abstract=abstract, pdf_link=pdf_link)
-                try:
-                    doc.save()
-                except Exception as e:
-                    print(e)
-                    print(title)
-                    continue
-            for author in authors:
-                name = convert_name(author)
-                a = Author.objects.filter(name__iexact=name).first()
-                if a is None:
-                    a = Author(name=name)
-                    try:
-                        a.save()
-                    except Exception as e:
-                        print(e)
-                        print(author)
-                        continue
-                if a not in doc.authors.all():
-                    doc.authors.add(a)
-                    doc.save()
+            add_document(title, abstract, pdf_link, authors)
         f.close()
 
 
+class IJCAIDownloader(Downloader):
+    def __init__(self, *args, **kwargs):
+        super(IJCAIDownloader, self).__init__(*args, **kwargs)
+
+    def get_abstract(self, abstract_link):
+        soup = parse_html(get_html(abstract_link))
+        abstract = ""
+        bibtex = ""
+        for row in soup.find_all('div', attrs={'class': 'row'}):
+            if len(row.find_all('div', attrs={'class': 'keywords'})) == 0: continue
+            for subrow in row.find_all('div', attrs={'class': 'col-md-12'}):
+                if len(subrow.find_all('div', attrs={'class': 'keywords'})) > 0: continue
+                abstract = subrow.text
+                break
+        bibtex_urls = ""
+        for a in soup.find_all('a'):
+            if 'href' in a.attrs and 'bibtex' in a.attrs['href']:
+                bibtex_urls = "https://www.ijcai.org" + a.attrs['href']
+                break
+        if len(bibtex_urls) > 0:
+            bibtex = get_html(bibtex_urls)
+        return abstract, bibtex
+
+    def download(self, output):
+        soup = parse_html(get_html(self.event_url))
+        papers = soup.find_all('div', attrs={'class': 'paper_wrapper'})
+        f = open(output, 'w')
+        # find title, authors, pdf_link and abstract link
+        for paper in tqdm(papers):
+            if len(paper.find_all('div', attrs={'class': 'title'})) > 0:
+                title = paper.find_all('div', attrs={'class': 'title'})[0].text
+            else: continue
+            if len(paper.find_all('div', attrs={'class': 'authors'})) > 0:
+                authors = [w.strip() for w in paper.find_all('div', attrs={'class': 'authors'})[0].text.split(',')]
+            else: continue
+            pdf_link = ""
+            abstract = ""
+            bibtex = ""
+            for a in paper.find_all('a'):
+                if a.text == 'PDF':
+                    pdf_link = '{}/{}'.format(self.event_url, a.attrs['href'])
+                elif a.text == 'Details':
+                    abstract_link = 'https://www.ijcai.org/{}'.format(a.attrs['href'])
+                    abstract, bibtex = self.get_abstract(abstract_link)
+            f.write(bibtex + '\n')
+            add_document(title, abstract, pdf_link, authors)
+        f.close()
 
 
 
