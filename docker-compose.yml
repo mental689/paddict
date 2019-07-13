@@ -94,7 +94,7 @@ services: # An example. You can modify such as defining more than one node for e
             - esdata02:/usr/share/elasticsearch/data
         networks:
             - net
-    web:
+    student: # The student webapp, which will execute the tasks of crawling (collecting) data and indexing data WITH the help of other nodes such as celery (for task queues), es01/es02 (for text indexing), db (for MySQL), nginx (for web server), and UNDER the manual tasks of supervisor node.
         image: marxen68/paddict:latest
         depends_on:
             - db
