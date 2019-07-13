@@ -95,7 +95,7 @@ services: # An example. You can modify such as defining more than one node for e
         networks:
             - net
     web:
-        build: .
+        image: marxen68/paddict:latest
         depends_on:
             - db
             - neo4j
@@ -115,14 +115,15 @@ services: # An example. You can modify such as defining more than one node for e
                 /etc/init.d/mysql start 
                 python manage.py collectstatic --noinput 
                 python manage.py makemigrations 
-                python manage.py migrate 
+                python manage.py migrate
+                python manage.py update_index
                 python manage.py install_labels
                 gunicorn papers.wsgi -b 0.0.0.0:8000
         networks:
             - net
     
     celery: # This node is to run celery to connect to redis
-        build: .
+        image: marxen68/paddict:latest
         depends_on:
             - web
         volumes:
@@ -138,7 +139,7 @@ services: # An example. You can modify such as defining more than one node for e
             - net
 
     supervisor: # we need this node to do some others stuffs such as CERMINE/OCR/download, .etc. A human user will login to here to perform some supervised tasks manually. Logs are recorded by docker.
-        build: .
+        image: marxen68/paddict:latest
         depends_on:
             - web
         volumes:
