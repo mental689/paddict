@@ -6,7 +6,7 @@ A simple reader app for paper addicters. Crawling and reading papers from major 
 
 A demo with data is initialized with CVPR 2019 dataset can be viewed at: http://34.67.231.204:8000/crawler/?event=cvpr2019
 
-This is just for demonstrate how it look in a real dataset. In a personal setting, the webapp should be launched from a local PC without any Internet connection.
+This is just to demonstrate how it looks in a real-world dataset. In a personal setting, the webapp should be launched from a local PC without any Internet connection.
 
 ### Features
 
