@@ -25,7 +25,7 @@ SECRET_KEY = 'z48lc$zfer9fi*r4&bivmcf&-!+url617$rkt84tv=i-%o-9y1'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['web']
+ALLOWED_HOSTS = ['student']
 
 
 # Application definition

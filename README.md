@@ -2,6 +2,12 @@ paddict
 =====
 A simple reader app for paper addicters. Crawling and reading papers from major venues on your own server.
 
+### Demo
+
+A demo with data is initialized with CVPR 2019 dataset can be viewed at: http://34.67.231.204:8000/crawler/?event=cvpr2019
+
+This is just to demonstrate how it looks in a real-world dataset. In a personal setting, the webapp should be launched from a local PC without any Internet connection.
+
 ### Features
 
 * **Statistical overview dashboard** including visualizations of authors graph (their collaborations wth interactive tools thanks to [CytoScape](http://js.cytoscape.org), word cloud of keywords extracted from paper titles, statistics of participants and papers, etc.

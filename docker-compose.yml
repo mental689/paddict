@@ -10,9 +10,9 @@ services: # An example. You can modify such as defining more than one node for e
             - ./config/nginx:/etc/nginx/conf.d
             - ./static:/static
         depends_on:
-            - web
+            - student
         networks:
-            - net
+            - net 
 
     db: # MySQL
         image: mariadb:5.5 #mysql:5.7
@@ -94,8 +94,8 @@ services: # An example. You can modify such as defining more than one node for e
             - esdata02:/usr/share/elasticsearch/data
         networks:
             - net
-    web:
-        build: .
+    student: # The student webapp, which will execute the tasks of crawling (collecting) data and indexing data WITH the help of other nodes such as celery (for task queues), es01/es02 (for text indexing), db (for MySQL), nginx (for web server), and UNDER the manual tasks of supervisor node.
+        image: marxen68/paddict:latest
         depends_on:
             - db
             - neo4j
@@ -115,16 +115,17 @@ services: # An example. You can modify such as defining more than one node for e
                 /etc/init.d/mysql start 
                 python manage.py collectstatic --noinput 
                 python manage.py makemigrations 
-                python manage.py migrate 
+                python manage.py migrate
+                python manage.py update_index --batch-size 1 --workers 4 --verbosity 2
                 python manage.py install_labels
                 gunicorn papers.wsgi -b 0.0.0.0:8000
         networks:
             - net
     
     celery: # This node is to run celery to connect to redis
-        build: .
+        image: marxen68/paddict:latest
         depends_on:
-            - web
+            - student
         volumes:
             - ./:/src
             - ./static:/static
@@ -138,9 +139,9 @@ services: # An example. You can modify such as defining more than one node for e
             - net
 
     supervisor: # we need this node to do some others stuffs such as CERMINE/OCR/download, .etc. A human user will login to here to perform some supervised tasks manually. Logs are recorded by docker.
-        build: .
+        image: marxen68/paddict:latest
         depends_on:
-            - web
+            - student
         volumes:
             - ./:/src
             - ./static:/static
