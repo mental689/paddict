@@ -6,6 +6,7 @@ Reader
 {% endblock %}
 
 {% block content %}
+<bibtex src="/static/download/paper{{ paper.id }}.bibtex"></bibtex>
 <form method="POST">
 	{% csrf_token %}
 	<input type="hidden" id="id" name="id" value="{{paper.id}}">
@@ -66,7 +67,7 @@ Reader
 					<div class="card-body">
                         <div><p><b>Authors: {%for a in paper.authors.all%}<a href="/crawler/author?id={{a.id}}" target="_blank">{{a.surname}}, {{a.givenname}}</a> {%endfor%}</b></p></div>
 						<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
-						<div><b>Abstract:</b> {{paper.abstract}}</div>
+                        <div><b>Abstract:</b> <p class="mb-0" style = "text-justify: auto;">{{paper.abstract}}</p></div>
                         <div><b>Event:</b> <a href="/crawler/?event={{paper.event.shortname}}" target="_blank">{{paper.event.shortname}}</a></div>
 					</div>
 				</div>
@@ -110,7 +111,6 @@ Reader
 					</div>
 
 					<div class="card-body">
-                        <bibtex src="/static/download/paper{{ paper.id }}.bibtex"></bibtex>
                         <div id="bibtex_display"></div>
 					</div>
 				</div>
@@ -124,23 +124,28 @@ Reader
 	<script src="{% static 'js/plugin/taggle.js/example/js/taggle.min.js' %}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.0.0/peerjs.min.js" type="text/javascript"></script>
     <script type="text/javascript">
-        if(navigator.mediaDevices === undefined) navigator.mediaDevices = {};
-        if(navigator.mediaDevices.getUserMedia === undefined){
-                    navigator.mediaDevices.getUserMedia = function(constraints){
-                           var getUserMedia = (navigator.webkitGetUserMedia
-                                                || navigator.mozGetUserMedia
-                                                 || navigator.msGetUserMedia
-                                                 || navigator.getUserMedia);
-                        if(!getUserMedia) {
-                            return Promise.reject(new Error('Unsupported Browser'));
-                        }
-                        return new Promise(function(resolve, reject){
-                           getUserMedia.call(navigator, constraints, resolve, reject);
-                        });
-                    };
-                };
+        // find mediaDevices
+        navigator.mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
+            getUserMedia: function(c) {
+                return new Promise(function(y, n) {
+                           (navigator.mozGetUserMedia ||
+                                   navigator.webkitGetUserMedia).call(navigator, c, y, n);
+                         
+                });
+                   
+            }
+
+        } : null);
+
+        if (!navigator.mediaDevices) {
+              alert("getUserMedia() not supported.");
+        }
         jQuery.curCSS = jQuery.css;
-        PDFObject.embed("/static/download/paper{{paper.id}}.pdf", "#example1");
+        if ("{{paper.pdf_link}}".indexOf('http') != -1) {
+            PDFObject.embed("{{paper.pdf_link}}", "#example1");
+        } else {
+            PDFObject.embed("/{{paper.pdf_link}}", "#example1");
+        }
 		var tagger = new Taggle('tags', {
 			tags: [],
     			duplicateTagClass: 'bounce'

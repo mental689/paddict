@@ -154,7 +154,7 @@ def add_document(event, title, abstract, pdf_link, authors):
             doc.authors.add(a)
             doc.save()
     install_neo4j_data(doc.id, [a.id for a in doc.authors.all()])
-
+    return doc
 
 class Downloader(object):
     def __init__(self, event_url="http://openaccess.thecvf.com/CVPR2013.py", shortname="CVPR2013", name="The IEEE Conference on Computer Vision and Pattern Recognition (CVPR)", dtime="2019/06/16"):
@@ -449,4 +449,48 @@ class IJCAIDownloader(Downloader):
         f.close()
 
 
+class AAAIDownloader(Downloader):
+    def get_abstract(self, url):
+        soup = parse_html(get_html(url))
+        title, abstract, pdf_link, keywords, author = "", "", "", [], []
+        divs = soup.find_all('div', attrs={'id':'content'})[0].find_all('div')
+        for div in divs:
+            if 'id' in div.attrs:
+                if div.attrs['id'] == "title":
+                    title = div.text
+                elif div.attrs['id'] == "author":
+                    author = [w.strip() for w in div.text.split(',')]
+                elif div.attrs['id'] == 'abstract':
+                    abstract = div.find_all('div')[0].text
+                elif div.attrs['id'] == 'paperSubject':
+                    keywords = [w.strip() for w in div.find_all('div')[0].text.split(';')]
+                elif div.attrs['id'] == 'paper':
+                    pdf_link = div.find_all('a', text='PDF')[0].attrs['href'].replace('/view/','/viewFile/')
+        return title, abstract, pdf_link, keywords, author
+
+    def get_metadata(self, table_html):
+        tdx = table_html.find_all('td')
+        abstract_url = tdx[0].find_all('a')[0].attrs['href']
+        title = tdx[0].find_all('a')[0].text
+        pdf_link = tdx[1].find_all('a')[0].attrs['href'].replace('/view/','/viewFile/')
+        author = [w.strip() for w in tdx[2].text.split(',')]
+        title2, abstract, pdf_link2, keywords, author2 = self.get_abstract(url=abstract_url.replace('/view/','/viewPaper/'))
+        # check
+        if title.lower() != title2.lower():
+            raise ValueError('Mismatch between presentation site and abstract site')
+        if pdf_link != pdf_link2:
+            raise ValueError('PDF links are not matched')
+        if set(author) != set(author2):
+            raise ValueError('Found two different author sets for the same paper')
+        return title2, abstract, pdf_link2, keywords, author2
+
+    def download(self, output):
+        soup = parse_html(get_html(self.event_url))
+        table_htmls = soup.find_all('div', attrs={'id': 'content'})[0].find_all('table')
+        for table_html in tqdm(table_htmls):
+            try:
+                title, abstract, pdf_link, keywords, authors = self.get_metadata(table_html)
+                doc = add_document(self.event, title, abstract, pdf_link, authors)
+            except Exception as e:
+                print(e)
 

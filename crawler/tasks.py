@@ -54,7 +54,7 @@ def extract_keywords_from_pdf_task(id):
 
 
 @shared_task
-def download_direct(output, id, check_downloaded=True):
+def download_direct(output, id, check_downloaded):
     try:
         doc = Document.objects.filter(id=id).first()
         url = doc.pdf_link
@@ -65,8 +65,8 @@ def download_direct(output, id, check_downloaded=True):
         if not os.path.exists(output) or not os.path.isfile(output):
             raise ValueError('Could not download {} due to some network issues'.format(output))
         doc.pdf_link = output
-        #words = extract_keywords_from_pdf(output)
-        #doc.words = ' '.join(words)
+        words = extract_keywords_from_pdf(output)
+        doc.words = ' '.join(words)
         #if output != doc.pdf_link:
         #    os.remove(output) # remove after extracting needed information, to save disk
         doc.save()
@@ -76,10 +76,10 @@ def download_direct(output, id, check_downloaded=True):
 
 
 def download_direct_all():
-    doc_idx = Document.objects.all().values('id')
+    doc_idx = Document.objects.exclude(pdf_link__icontains='static/download').all().values('id')
     results = []
     for idx in tqdm(doc_idx):
-        result = download_direct.apply_async((['static/download/paper{}.pdf'.format(idx['id']), idx['id']]))
+        result = download_direct.apply_async((['static/download/paper{}.pdf'.format(idx['id']), idx['id'], False]))
         results.append(result)
     return results
 
