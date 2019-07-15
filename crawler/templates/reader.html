@@ -33,6 +33,29 @@ Reader
 				<div class="card">
 					<div class="card-header">
 						<div class="card-head-row">
+							<div class="card-title">{{paper.title}}</div>
+							<div class="card-tools">
+								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
+									<li class="nav-item submenu">
+										<a href="/reader?id={{paper.id|add:-1}}" class="nav-link">Previous</a>
+									</li>
+									<li class="nav-item submenu">
+										<a href="/reader?id={{paper.id|add:1}}" class="nav-link">Next</a>
+									</li>
+								</ul>
+							</div>
+						</div>
+					</div>
+					<div class="card-body">
+                        <div><p><b>Authors: {%for a in paper.authors.all%}<a href="/author?id={{a.id}}" target="_blank">{{a.surname}}, {{a.givenname}}</a> {%endfor%}</b></p></div>
+						<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
+                        <div><b>Abstract:</b> <p class="mb-0" style = "text-justify: auto;">{{paper.abstract}}</p></div>
+                        <div><b>Event:</b> <a href="/?event={{paper.event.shortname}}" target="_blank">{{paper.event.shortname}}</a></div>
+					</div>
+				</div>
+                <div class="card">
+					<div class="card-header">
+						<div class="card-head-row">
 							<div class="card-title">Tags</div>
 							<div class="card-tools">
 								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
@@ -44,31 +67,8 @@ Reader
 						</div>
 					</div>
 					<div class="card-body">
-						<div><b>{% for ta in tags %}<a href="/crawler/tag?tag={{ta.tag.text}}">{{ta.tag.text}}</a>, {%endfor%}</b></div>
+						<div><b>{% for ta in tags %}<a href="/tag?tag={{ta.tag.text}}">{{ta.tag.text}}</a>, {%endfor%}</b></div>
 						<div class="form-group" id="tags"></div>
-					</div>
-				</div>
-				<div class="card">
-					<div class="card-header">
-						<div class="card-head-row">
-							<div class="card-title">{{paper.title}}</div>
-							<div class="card-tools">
-								<ul class="nav nav-pills nav-secondary nav-pills-no-bd nav-sm" id="pills-tab" role="tablist">
-									<li class="nav-item submenu">
-										<a href="/crawler/reader?id={{paper.id|add:-1}}" class="nav-link">Previous</a>
-									</li>
-									<li class="nav-item submenu">
-										<a href="/crawler/reader?id={{paper.id|add:1}}" class="nav-link">Next</a>
-									</li>
-								</ul>
-							</div>
-						</div>
-					</div>
-					<div class="card-body">
-                        <div><p><b>Authors: {%for a in paper.authors.all%}<a href="/crawler/author?id={{a.id}}" target="_blank">{{a.surname}}, {{a.givenname}}</a> {%endfor%}</b></p></div>
-						<div><p><b>Network score: {{ maxNetworkSize }}</b></p></div>
-                        <div><b>Abstract:</b> <p class="mb-0" style = "text-justify: auto;">{{paper.abstract}}</p></div>
-                        <div><b>Event:</b> <a href="/crawler/?event={{paper.event.shortname}}" target="_blank">{{paper.event.shortname}}</a></div>
 					</div>
 				</div>
 				<div class="card">

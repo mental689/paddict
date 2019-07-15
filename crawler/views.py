@@ -128,7 +128,10 @@ class ReadingView(TemplateView):
         # for which one of the authors of this paper belongs to.
         query = "CALL algo.unionFind.stream('MATCH (p) RETURN id(p) as id', 'MATCH (d:DocumentNode)-[]-(a:AuthorNode) RETURN id(d) as source, id(a) as target UNION MATCH (p1:AuthorNode)-[f:COAUTHOR]->(p2:AuthorNode) RETURN id(p1) as source, id(p2) as target', {graph:'cypher'}) YIELD nodeId, setId RETURN setId, collect(nodeId), count(nodeId) as size_of_component ORDER BY size_of_component DESC;"
         results, meta = neomodel.db.cypher_query(query)
-        max_cc = results[0][2]
+        if len(results) > 0:
+            max_cc = results[0][2]
+        else:
+            max_cc = 0
         authors = ctx['paper'].authors.all()
         max_cc_this_paper = 0
         # Find the size of leargest connected component an author belongs to
@@ -158,9 +161,9 @@ class ReadingView(TemplateView):
         try:
             paper = Document.objects.filter(id=id).first()
         except Exception as e:
-            return redirect('/crawler/?event=')
+            return redirect('/?event=')
         if paper is None:
-            return redirect('/crawler/?event=')
+            return redirect('/?event=')
         tags = request.POST.getlist('taggles[]')
         for tag in tags:
             tagger = Tag.objects.filter(text=re.sub('[^0-9a-zA-Z]+','',tag).lower()).first()
@@ -176,7 +179,7 @@ class ReadingView(TemplateView):
         if len(comment) > 10 and len(comment) < 500:
             c = Comment(text=comment, doc=paper)
             c.save()
-        return redirect('/crawler/reader?id={}'.format(id))
+        return redirect('/reader?id={}'.format(id))
 
 
 class AuthorView(TemplateView):
