@@ -20,7 +20,7 @@ from django.conf.urls import include, url
 from restapi.urls import router
 
 urlpatterns = [
-        url(r'^crawler/', include('crawler.urls')),
+        path('', include('crawler.urls')),
         url(r'^api/', include(router.urls)),
         path('admin/', admin.site.urls),
         url(r'^tinymce/', include('tinymce.urls')),

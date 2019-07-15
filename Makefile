@@ -25,3 +25,7 @@ runall:
 prune:
 	docker image prune
 	docker container prune
+
+MYSQL_DUMP="${PWD}/paddict20190715.sql"
+import_sql:
+	docker exec -i paddict_db mysql -uroot -ppaddict paddict < ${MYSQL_DUMP}

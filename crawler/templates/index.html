@@ -234,11 +234,11 @@
 														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
 													</td>
 													<td><p>{% for a in paper.authors.all %}
-                                                            <b><a href="/crawler/author?id={{a.id}}">{{a.surname}}, {{a.givenname}}</a> </b> 
+                                                            <b><a href="/author?id={{a.id}}">{{a.surname}}, {{a.givenname}}</a> </b> 
 														{% endfor %}</p>
 													</td>
 													<td>{{paper.event.shortname}}</td>
-													<td><a href="/crawler/reader?id={{paper.id}}" target="_blank">View PDF</a></td>
+													<td><a href="/reader?id={{paper.id}}" target="_blank">View PDF</a></td>
 												</tr>
 												{% endfor %}
 											</tbody>
