@@ -28,8 +28,8 @@ runall:
 
 # Sometimes prunning may be helpful to find an efficient architecture
 prune:
-	docker image prune
-	docker container prune
+	docker image prune --filter until=`date +%s` --all
+	docker container prune --filter until=`date +%s`
 
 # Import/export MySQL data
 MYSQL_DUMP="${PWD}/paddict20190715.sql"
