@@ -7,8 +7,9 @@ build:
 	# We need to build first
 	docker-compose build
 
+SCALE="supervisor=1" # To change the number of each node types, for example, you can choose supervisor=2 to have Two Teachers
 run:
-	docker-compose up -d
+	docker-compose up -d --scale ${SCALE}
 
 login_to_supervisor:
 	# Login to supervisor node
@@ -23,13 +24,20 @@ stop:
 	docker-compose stop
 
 runall:
-	docker-compose up -d --force-recreate --build
+	docker-compose up -d --force-recreate --build  --scale ${SCALE}
 
 
 # Sometimes prunning may be helpful to find an efficient architecture
 prune:
 	docker image prune --filter until=`date +%s` --all
 	docker container prune --filter until=`date +%s`
+
+# Sometimes we may need to search for a built efficient architecture in Docker Hub
+QUERY="paddict"
+FILTER="is-automated=true"
+search:
+	docker search ${QUERY} \
+		--no-trunc --limit 100 --filter ${FILTER} --format "{{.Name}}:\t{{.StarCount}}\t{{.Description}}\t{{.IsAutomated}}\t{{.IsOfficial}}"
 
 # Import/export MySQL data
 MYSQL_DUMP="${PWD}/paddict20190715.sql"
