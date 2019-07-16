@@ -137,7 +137,11 @@ class ReadingView(TemplateView):
         # Find the size of leargest connected component an author belongs to
         for a in authors:
             for r in results:
-                an = AuthorNode.nodes.filter(author_id=a.id).first()
+                try:
+                    an = AuthorNode.nodes.filter(author_id=a.id).first()
+                except Exception as e:
+                    print(e)
+                    an = None
                 if an is None: continue
                 if an.id in r[1] and max_cc_this_paper < r[2]:
                     max_cc_this_paper = r[2]
