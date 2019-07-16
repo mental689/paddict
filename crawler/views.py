@@ -11,6 +11,7 @@ import networkx as nx
 import re
 import nltk
 import neomodel
+import bibtexparser
 
 
 from crawler.pdf import *
@@ -155,6 +156,19 @@ class ReadingView(TemplateView):
         ctx['vocab'] = Tag.objects.all()
         ctx['words'] = count_words(ctx['paper'].words.split(' '))
         ctx['comments'] = Comment.objects.filter(doc=ctx['paper']).all()
+        # Check if references are in our DB or not
+        ctx['in_db_refs'] = []
+        ctx['out_of_db_refs'] = []
+        if os.path.exists('static/download/paper{}.bibtex'.format(ctx['paper'].id)):
+            bibtex = bibtexparser.load(open('static/download/paper{}.bibtex'.format(ctx['paper'].id)))
+            for ent in bibtex.entries:
+                if 'title' not in ent: continue
+                doc = Document.objects.filter(title__icontains=ent['title']).first()
+                if doc is None:
+                    ctx['out_of_db_refs'].append(ent)
+                    continue
+                ctx['in_db_refs'].append(doc)
+
         return self.render_to_response(ctx)
 
     def post(self, request, *args, **kwargs):

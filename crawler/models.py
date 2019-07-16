@@ -102,7 +102,14 @@ class Comment(models.Model):
     def __str__(self):
         return "{} - {}".format(self.doc.title, self.text)
 
-
+#class Reference(models.Model):
+#    scholar_bib_url = models.CharField(max_length=255)
+#    doc = models.ForeignKey(Document, on_delete=models.CASCADE, blank=True, null=True, default=None)
+#    citedby = models.IntegerField(default=0)
+#    id_scholarcitedby = models.CharField(max_length=255)
+#    bib = models.TextField(default="")
+#    created_at = models.DateTimeField(auto_now_add=True)
+#    updated_at = models.DateTimeField(auto_now=True)
 
 # Neomodel definitions
 

@@ -111,7 +111,50 @@ Reader
 					</div>
 
 					<div class="card-body">
-                        <div id="bibtex_display"></div>
+                        <!--div id="bibtex_display"></div-->
+                        <div class="table-responsive">
+                            <table id="basic-datatables" class="display table table-striped table-hover" >
+                                <thead>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Event</th>
+                                        <th>Read</th>
+                                    </tr>
+                                </thead>
+                                <tfoot>
+                                    <tr>
+                                        <th>Title</th>
+                                        <th>Author</th>
+                                        <th>Event</th>
+                                        <th>Read</th>
+                                    </tr>
+                                </tfoot>
+                                <tbody>
+                            {% for paper in in_db_refs %}
+												<tr>
+													<td><h4 class="card-title">{{ paper.title }}</h4>
+														<span id="dots-{{paper.id}}"></span>
+														<span id="more-{{paper.id}}" class="more">
+															<p>{{ paper.abstract }}</p></span>
+														<button onclick="myFunction({{paper.id}})" id="abs{{paper.id}}" class="btn-info btn-border btn-round btn-sm mr-2">Read abstract</button>
+													</td>
+													<td><p>{% for a in paper.authors.all %}
+                                                            <b><a href="/author?id={{a.id}}">{{a.surname}}, {{a.givenname}}</a> </b> 
+														{% endfor %}</p>
+													</td>
+                                                    <td>
+                                                        {{paper.event.shortname}}
+                                                    </td>
+													<td>
+														<a href="/reader?id={{paper.id}}" target="_blank">Read</a>
+													</td>
+												</tr>
+
+                            {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
 					</div>
 				</div>
 			</div>
@@ -125,6 +168,22 @@ Reader
     <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.0.0/peerjs.min.js" type="text/javascript"></script>
     <script type="text/javascript">
         // find mediaDevices
+        $('#basic-datatables').DataTable({});
+		function myFunction(id) {
+  			var dots = document.getElementById("dots-"+id);
+  			var moreText = document.getElementById("more-"+id);
+  			var btnText = document.getElementById("abs"+id);
+
+  			if (dots.style.display === "none") {
+   				dots.style.display = "inline";
+   	 			btnText.innerHTML = "Read abstract"; 
+    				moreText.style.display = "none";
+  			} else {
+    				dots.style.display = "none";
+    				btnText.innerHTML = "Close abstract"; 
+    				moreText.style.display = "inline";
+  			}
+		}
         navigator.mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
             getUserMedia: function(c) {
                 return new Promise(function(y, n) {
