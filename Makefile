@@ -45,7 +45,7 @@ import_sql:
 	docker exec -i paddict_db mysql -uroot -ppaddict paddict < ${MYSQL_DUMP}
 
 export_sql:
-	docker exec -it paddict_db /usr/bin/mysqldump -uroot -ppaddict paddict > "${PWD}/paddict"`date +%F`".sql"
+	docker exec -i paddict_db /usr/bin/mysqldump -uroot -ppaddict paddict > "./paddict"`date +%F`".sql"
 
 # Import/export Elasticsearch data
 # Will pull an image from the Internet
