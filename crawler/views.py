@@ -168,7 +168,7 @@ class ReadingView(TemplateView):
                     ctx['out_of_db_refs'].append(ent)
                     continue
                 ctx['in_db_refs'].append(doc)
-
+        print("Done querying!")
         return self.render_to_response(ctx)
 
     def post(self, request, *args, **kwargs):
