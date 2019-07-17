@@ -27,3 +27,4 @@ networkx
 arxiv
 BeautifulSoup4
 bibtexparser
+scholarly

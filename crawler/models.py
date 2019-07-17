@@ -126,3 +126,4 @@ class AuthorNode(DjangoNode):
 class DocumentNode(DjangoNode):
     document_id = neomodel.IntegerProperty(unique_index=True) # one-to-one to Document model in SQL
     authors = neomodel.RelationshipFrom('AuthorNode', 'OWNS')
+    references = neomodel.RelationshipTo('DocumentNode', 'CITES')
