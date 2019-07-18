@@ -1,12 +1,6 @@
 paddict
 =====
-A simple reader app for paper addicters. Crawling and reading papers from major venues on your own server.
-
-### Demo
-
-A demo with data is initialized with CVPR 2019 dataset can be viewed at: http://34.67.231.204:8000/crawler/?event=cvpr2019
-
-This is just to demonstrate how it looks in a real-world dataset. In a personal setting, the webapp should be launched from a local PC without any Internet connection.
+A simple offline reader app for paper addicters. Crawling and reading papers from major venues on your own server.
 
 ### Features
 
@@ -60,7 +54,8 @@ Except for the watermark, they are identical to the accepted versions; the final
 This material is presented to ensure timely dissemination of scholarly and technical work. Copyright and all rights therein are retained by authors or by other copyright holders. All persons copying this information are expected to adhere to the terms and constraints invoked by each author's copyright.
 ```
 
-### Pages
+### Demo
+In a personal setting, the webapp should be launched from a local PC without any Internet connection (offline mode).
 
 #### Reader
 
