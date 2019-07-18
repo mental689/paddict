@@ -1,6 +1,6 @@
 paddict
 =====
-A simple offline reader app for paper addicters. When plugged in to an Internet connection, paddict can crawl papers from public resources to their own storage. When turing off all Internet connections, paddict provide features for indexing and reading papers.
+A simple offline reader app for paper addicters. When plugged in to an Internet connection, paddict can crawl papers from public resources to their own storage. When turing off all Internet connections, paddict provide features for indexing and reading downloaded papers.
 
 ### Features
 
