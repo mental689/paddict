@@ -9,10 +9,16 @@ class MembershipInline(admin.TabularInline):
 class DocumentAdmin(admin.ModelAdmin):
     inlines = [MembershipInline]
     exclude = ['authors']
+    fields = ("title", "abstract", "event", "notes", "words", "preprocessed")
+    list_display = ("title", "abstract", "event")
+    list_filter = ("title" ,"event")
 
 
 class AuthorAdmin(admin.ModelAdmin):
     inlines = [MembershipInline]
+    fields = ("surname", "middle", "givenname")
+    list_display = ("surname", "middle", "givenname")
+    list_filter = ("surname", "middle", "givenname")
 
 
 admin.site.register(Event)
