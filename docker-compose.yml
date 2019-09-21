@@ -17,7 +17,7 @@ services: # An example. You can modify such as defining more than one node for e
     db: # MySQL
         image: mariadb:5.5 #mysql:5.7
         container_name: paddict_db
-        command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+        command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci --innodb-flush-method=O_DSYNC --innodb_use_native_aio=0
         environment:
             - MYSQL_HOST=localhost
             - MYSQL_PORT=3306  # cannot change this port to other number
@@ -105,6 +105,7 @@ services: # An example. You can modify such as defining more than one node for e
         volumes:
             - ./:/src
             - ./static:/static
+            - ./db/django_cache:/var/tmp/django_cache
         container_name: paddict_main
         expose:
             - "8000"
