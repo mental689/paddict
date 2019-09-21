@@ -82,7 +82,8 @@
 												<tr>
 													<th>Title</th>
                                                     <th>Authors</th>
-                                                    <th>Event</th>
+													<th>Event</th>
+													<th>Year</th>
 													<th>Link</th>
 												</tr>
 											</thead>
@@ -109,7 +110,8 @@
 													</td>
                                                     <td>
                                                         {{paper.event.shortname}}
-                                                    </td>
+													</td>
+													<td>{{paper.event.time.year}}</td>
 													<td>
 														<a href="/reader?id={{paper.id}}" target="_blank">Read</a>
 													</td>
