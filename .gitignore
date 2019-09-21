@@ -119,3 +119,9 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+*.iml
+/.bash_history
+*.tar
+*.tar
+*.suo
+/static/img/._reader.png
