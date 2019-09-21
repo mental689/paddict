@@ -1,4 +1,5 @@
 {% load static %}
+{% load cache %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +9,7 @@
 	<link rel="icon" href="{% static 'img/icon.ico' %}" type="image/x-icon"/>
 
 	<!-- Fonts and icons -->
+	{% cache 500 js_header %}
 	<script src="{% static 'js/plugin/webfont/webfont.min.js' %}"></script>
     <script src="{% static 'js/custom/jquery.min.js' %}"></script>
 	<script src="{% static 'js/plugin/taggle.js/example/js/jquery-ui.js' %}"></script>
@@ -48,9 +50,11 @@
     </script>
     <script type="text/javascript" src="{% static 'js/MathJax/MathJax.js' %}" async></script>
     <!-- BibTeX parsing -->
-    <script type="text/javascript" src="{% static 'js/custom/bibtex_js.js' %}"></script>
+	<script type="text/javascript" src="{% static 'js/custom/bibtex_js.js' %}"></script>
+	{% endcache %}
 
 	<!-- CSS Just for demo purpose, don't include it in your project -->
+	{% cache 500 css_header %}
     <link rel="stylesheet" href="{% static 'css/azzara.min.css' %}">
     <link href="{% static 'css/bootstrap-toggle.min.css' %}" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
@@ -67,15 +71,20 @@
 			background-color: #f9f9f9;
     		}
 	</style>
+	{% endcache %}
 	{% block css %}
 	{% endblock %}
 	{{ form.media }}
 </head>
 <body>
 	<div class="wrapper">
+		{% cache 500 header %}
 		{% include 'header.html' %}
+		{% endcache %}
 		<!-- Sidebar -->
-	  	{% include 'sidebar.html' %}	
+		{% cache 500 sidebar %}
+		  {% include 'sidebar.html' %}
+		{% endcache %}	
 		<div class="main-panel">
 			<div class="content">
 				{% block content %}
@@ -254,6 +263,7 @@
 		</div>
 	</div>
 </div>
+{% cache 500 js %}
 <!--   Core JS Files   -->
 <script src="{% static '/js/core/popper.min.js' %}"></script>
 
@@ -296,7 +306,7 @@
 
 <!-- PDF.js -->
 <script src="{% static 'js/custom/pdfobject.js' %}"></script>
-
+{% endcache %}
 {% block js %}
 	<script >
 		$(document).ready(function() {
