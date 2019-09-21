@@ -19,9 +19,14 @@ class AuthorAdmin(admin.ModelAdmin):
     fields = ("surname", "middle", "givenname")
     list_display = ("surname", "middle", "givenname")
     list_filter = ("surname", "middle", "givenname")
+    
+
+class EventAdmin(admin.ModelAdmin):
+    list_display = ("name", "shortname", "time")
+    list_filter = ("time", "name")
 
 
-admin.site.register(Event)
+admin.site.register(Event, EventAdmin)
 admin.site.register(Author, AuthorAdmin)
 admin.site.register(Document, DocumentAdmin)
 admin.site.register(Tag)

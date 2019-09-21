@@ -108,7 +108,7 @@ Gate Decorator: Global Filter Pruning Method for Accelerating Deep Convolutional
 Provably Powerful Graph Networks,Haggai Maron;Heli Ben-Hamu;Hadar Serviansky;Yaron Lipman,http://arxiv.org/abs/1905.11136v2
 DeepUSPS: Deep Robust Unsupervised Saliency Prediction via Self-supervision,Tam Nguyen;Maximilian Dax;Chaithanya Kumar Mummadi;Nhung Ngo;Thi Hoai Phuong Nguyen;Zhongyu Lou;Thomas Brox,
 A Tensorized Transformer for Language Modeling,Xindian Ma;Peng Zhang;Shuai Zhang;Nan Duan;Yuexian Hou;Ming Zhou;Dawei Song,http://arxiv.org/abs/1906.09777v2
-Rethinking the CSC Model for Natural Images,Dror Simon;Michael Elad,
+Rethinking the CSC Model for Natural Images,Dror Simon;Michael Elad,http://arxiv.org/abs/1909.05742v1
 Multiview Aggregation for Learning Category-Specific Shape Reconstruction,Srinath Sridhar;Davis Rempe;Julien Valentin;Bouaziz Sofien;Leonidas J Guibas,
 "Nearly Linear-Time, Deterministic Algorithm for Maximizing (Non-Monotone) Submodular Functions Under Cardinality Constraint",Alan Kuhnle,
 The Point Where Reality Meets Fantasy: Mixed Adversarial Generators for Image Splice Detection,Vladimir V. Kniaz;Vladimir Knyaz;Fabio Remondino,
@@ -858,7 +858,7 @@ Scalable Deep Generative Relational Model with High-Order Node Dependence,Xuhui 
 Random Path Selection for Continual Learning,Jathushan Rajasegaran;Munawar Hayat;Salman H Khan;Fahad Shahbaz Khan;Ling Shao,
 Graph Normalizing Flows,Jenny Liu;Aviral Kumar;Jimmy Ba;Jamie Kiros;Kevin Swersky,http://arxiv.org/abs/1905.13177v1
 Regret Bounds for Learning State Representations in Reinforcement Learning,Ronald Ortner;Matteo Pirotta;Alessandro Lazaric;Ronan Fruit;Odalric-Ambrym Maillard,
-Band-Limited Gaussian Processes: The Sinc Kernel,Felipe Tobar,
+Band-Limited Gaussian Processes: The Sinc Kernel,Felipe Tobar,http://arxiv.org/abs/1909.07279v1
 Leveraging Labeled and Unlabeled Data for Consistent Fair Binary Classification,Evgenii Chzhen;Christophe Denis;Mohamed Hebiri;Luca Oneto;Massimiliano Pontil,
 Feedforward Bayesian Inference for Crowdsourced Classification,Edoardo Manino;Long Tran-Thanh;Nicholas Jennings,
 k-Means Clustering of Lines for Big Data,Yair Marom;Dan Feldman,http://arxiv.org/abs/1903.06904v2
@@ -1389,7 +1389,7 @@ Episodic Memory in Lifelong Language Learning,Cyprien de Masson d'Autume;Sebasti
 Bayesian Optimization under Heavy-tailed Payoffs,Sayak Ray Chowdhury;Aditya Gopalan,
 Revisiting Auxiliary Latent Variables in Generative Models,John Lawson;George Tucker;Bo Dai;Rajesh Ranganath,
 Stabilizing Off-Policy Q-Learning via Bootstrapping Error Reduction,Aviral Kumar;Justin Fu;Matthew Soh;George Tucker;Sergey Levine,
-The Randomized Midpoint Method for Log-Concave Sampling,Ruoqi Shen;Yin Tat Lee,
+The Randomized Midpoint Method for Log-Concave Sampling,Ruoqi Shen;Yin Tat Lee,http://arxiv.org/abs/1909.05503v1
 Are Sixteen Heads Really Better than One?,Paul Michel;Omer Levy;Graham Neubig,http://arxiv.org/abs/1905.10650v2
 Differentially Private Covariance Estimation,Kareem Amin;Travis Dick;Alex Kulesza;Andres Munoz;Sergei Vassilvitskii,
 A Family of Robust Stochastic Operators for Reinforcement Learning,Yingdong Lu;Mark Squillante;Chai Wah Wu,

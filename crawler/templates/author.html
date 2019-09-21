@@ -1,6 +1,10 @@
 {% extends 'index.html' %}
 {% load static %}
 
+{% block title %}
+{{ author }}
+{% endblock %}
+
 {% block content %}
 				<div class="page-inner">
 					<div class="row">
@@ -34,7 +38,7 @@
 										</div>
 										<div class="col col-stats ml-3 ml-sm-0">
 											<div class="numbers">
-                                                <p class="card-category">{{ events|length }} events</p>
+                                                <p class="card-category">{{author}} joined {{ events|length }} events</p>
                                                 <h4 class="card-title">{% for event in events %}<a href="/crawler?event={{event.shortname}}">{{event.shortname}}</a> {%endfor%}</h4>
 											</div>
 										</div>
@@ -95,6 +99,7 @@
 													<th>Title</th>
 													<th>Authors</th>
 													<th>Event</th>
+													<th>Year</th>
 													<th>Link</th>
 												</tr>
 											</thead>
@@ -120,6 +125,7 @@
 														{% endfor %}</p>
 													</td>
 													<td>{{paper.event.shortname}}</td>
+													<td>{{paper.event.time.year}}</td>
 													<td><a href="/reader?id={{paper.id}}" target="_blank">View PDF</a></td>
 												</tr>
 												{% endfor %}
