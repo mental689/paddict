@@ -40,8 +40,9 @@ services: # An example. You can modify such as defining more than one node for e
             - 7474:7474
             - 7687:7687
         volumes:
-            - ./db/neo4j:/data/dbms
-              #- ./db/neo4j/plugins:/var/lib/neo4j/plugins
+            - ./db/neo4j/data:/var/lib/neo4j/data
+            - ./db/neo4j/logs:/logs
+            - ./db/neo4j/import:/var/lib/neo4j/import
         environment:
             NEO4J_AUTH: 'neo4j/paddict'
             NEO4J_dbms_security_procedures_unrestricted: "algo.*"

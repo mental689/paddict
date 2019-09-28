@@ -12,6 +12,7 @@ import re
 import nltk
 import neomodel
 import bibtexparser
+from glob import glob
 
 
 from crawler.pdf import *
@@ -159,8 +160,10 @@ class ReadingView(TemplateView):
         # Check if references are in our DB or not
         ctx['in_db_refs'] = []
         ctx['out_of_db_refs'] = []
-        if os.path.exists('static/download/paper{}.bibtex'.format(ctx['paper'].id)):
-            bibtex = bibtexparser.load(open('static/download/paper{}.bibtex'.format(ctx['paper'].id)))
+        bib_files = glob('static/download*/paper'+str(ctx['paper'].id)+'.bibtex')
+        if len(bib_files) > 0:
+            bib_file = bib_files[0]
+            bibtex = bibtexparser.load(open(bib_file))
             for ent in bibtex.entries:
                 if 'title' not in ent: continue
                 doc = Document.objects.filter(title__icontains=ent['title']).first()
@@ -168,6 +171,9 @@ class ReadingView(TemplateView):
                     ctx['out_of_db_refs'].append(ent)
                     continue
                 ctx['in_db_refs'].append(doc)
+        pdf_files = glob('static/download*/paper'+str(ctx['paper'].id)+'.pdf')
+        if len(pdf_files) > 0:
+            ctx['pdf_path'] = pdf_files[0]
         print("Done querying!")
         return self.render_to_response(ctx)
 

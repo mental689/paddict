@@ -200,11 +200,12 @@ Reader
               alert("getUserMedia() not supported.");
         }
         jQuery.curCSS = jQuery.css;
-        if ("{{paper.pdf_link}}".indexOf('http') != -1) {
+        /*if ("{{paper.pdf_link}}".indexOf('http') != -1) {
             PDFObject.embed("{{paper.pdf_link}}", "#example1");
         } else {
             PDFObject.embed("/{{paper.pdf_link}}", "#example1");
-        }
+		}*/
+		PDFObject.embed("/{{pdf_path}}", "#example1");
 		var tagger = new Taggle('tags', {
 			tags: [],
     			duplicateTagClass: 'bounce'
